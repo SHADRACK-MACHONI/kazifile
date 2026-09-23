@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp import login as otp_login, match_token
 from .forms import SignupForm
@@ -9,6 +10,39 @@ from documents.utils import generate_qr_code_base64
 import qrcode
 import io
 import base64
+
+MAX_LOGIN_ATTEMPTS = 5
+LOCKOUT_DURATION_SECONDS = 300  # 5 minutes
+
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+
+def get_lockout_key(request):
+    ip = get_client_ip(request)
+    return f'login_attempts_{ip}'
+
+
+def is_locked_out(request):
+    key = get_lockout_key(request)
+    attempts = cache.get(key, 0)
+    return attempts >= MAX_LOGIN_ATTEMPTS
+
+
+def record_failed_attempt(request):
+    key = get_lockout_key(request)
+    attempts = cache.get(key, 0)
+    cache.set(key, attempts + 1, LOCKOUT_DURATION_SECONDS)
+
+
+def clear_attempts(request):
+    key = get_lockout_key(request)
+    cache.delete(key)
+
 
 def signup_view(request):
     if request.method == 'POST':
@@ -23,9 +57,17 @@ def signup_view(request):
 
 
 def login_view(request):
+    if is_locked_out(request):
+        return render(request, 'accounts/login.html', {
+            'form': AuthenticationForm(),
+            'locked_out': True,
+            'lockout_minutes': LOCKOUT_DURATION_SECONDS // 60,
+        })
+
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
+            clear_attempts(request)
             user = form.get_user()
             device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
             if device:
@@ -34,6 +76,11 @@ def login_view(request):
             else:
                 login(request, user)
                 return redirect('dashboard')
+        else:
+            record_failed_attempt(request)
+            attempts_left = MAX_LOGIN_ATTEMPTS - cache.get(get_lockout_key(request), 0)
+            if attempts_left <= 2 and attempts_left > 0:
+                form.add_error(None, f"Warning: {attempts_left} attempt(s) remaining before temporary lockout.")
     else:
         form = AuthenticationForm()
 
