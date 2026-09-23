@@ -2,166 +2,1138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KaziFile — Your Documents, Always Ready</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        h1, h2, h3, .heading-font { font-family: 'Space Grotesk', sans-serif; }
 
-        html { scroll-behavior: smooth; }
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <title>
+        {% block title %}KaziFile — Your Documents, Always Ready{% endblock %}
+    </title>
+
+    <meta
+        name="description"
+        content="KaziFile — A modern document storage, sharing and access management workspace."
+    >
+
+    <meta name="theme-color" content="#050608">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+
+        * {
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background: #050608;
+        }
 
         body {
+            margin: 0;
             background: #050608;
+            color: white;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        /* Ambient background orbs, subtle across all pages */
-        .bg-orb {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        button,
+        a,
+        input,
+        select,
+        textarea {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button,
+        a {
+            touch-action: manipulation;
+        }
+
+        .page-background {
             position: fixed;
-            border-radius: 50%;
-            filter: blur(90px);
-            opacity: 0.12;
+            inset: 0;
             pointer-events: none;
             z-index: 0;
-            animation: drift 20s ease-in-out infinite alternate;
-        }
-        @keyframes drift {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(40px, -30px); }
+            overflow: hidden;
         }
 
-        /* Navbar */
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: .11;
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+
+        .orb-red {
+            background: #bb0000;
+        }
+
+        .orb-green {
+            background: #006600;
+        }
+
+        @keyframes drift {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(40px, -30px, 0);
+            }
+        }
+
         .nav-glass {
-            background: rgba(5, 6, 8, 0.6);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+
+            background: rgba(5, 6, 8, .62);
+
+            border-bottom:
+                1px solid rgba(255,255,255,.06);
+
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.3s ease;
+
+            transition:
+                background .3s ease,
+                box-shadow .3s ease,
+                border-color .3s ease;
         }
+
         .nav-glass.scrolled {
-            background: rgba(5, 6, 8, 0.85);
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            background: rgba(5, 6, 8, .92);
+
+            border-color:
+                rgba(255,255,255,.09);
+
+            box-shadow:
+                0 8px 40px rgba(0,0,0,.35);
+        }
+
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+
+            padding:
+                14px
+                max(16px, env(safe-area-inset-right))
+                14px
+                max(16px, env(safe-area-inset-left));
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 11px;
+
+            min-width: 0;
+
+            text-decoration: none;
         }
 
         .logo-mark {
-            background: linear-gradient(135deg, #BB0000, #006600);
-            box-shadow: 0 0 20px rgba(0,102,0,0.3);
-            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 42px;
+            height: 42px;
+
+            flex-shrink: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #bb0000,
+                    #006600
+                );
+
+            box-shadow:
+                0 0 22px rgba(0,102,0,.28),
+                0 0 28px rgba(187,0,0,.16);
+
+            transition:
+                transform .4s cubic-bezier(.34,1.56,.64,1),
+                box-shadow .3s ease;
         }
-        .logo-mark:hover {
-            transform: rotate(-8deg) scale(1.08);
+
+        .logo-link:hover .logo-mark {
+            transform:
+                rotate(-8deg)
+                scale(1.08);
+
+            box-shadow:
+                0 0 30px rgba(0,102,0,.4),
+                0 0 38px rgba(187,0,0,.25);
+        }
+
+        .logo-name {
+            font-family: 'Space Grotesk', sans-serif;
+
+            font-size: 20px;
+            font-weight: 700;
+
+            letter-spacing: -.4px;
+
+            white-space: nowrap;
+        }
+
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
         }
 
         .nav-link {
             position: relative;
-            transition: color 0.2s ease;
+
+            display: inline-flex;
+            align-items: center;
+
+            min-height: 40px;
+
+            color: #9ca3af;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            transition:
+                color .2s ease;
         }
+
+        .nav-link:hover {
+            color: white;
+        }
+
         .nav-link::after {
             content: '';
+
             position: absolute;
-            left: 0; bottom: -4px;
-            width: 0; height: 2px;
-            background: linear-gradient(90deg, #BB0000, #006600);
-            transition: width 0.3s ease;
+
+            left: 0;
+            bottom: 2px;
+
+            width: 0;
+            height: 2px;
+
             border-radius: 999px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #bb0000,
+                    #006600
+                );
+
+            transition:
+                width .3s ease;
         }
-        .nav-link:hover::after { width: 100%; }
+
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: white;
+        }
 
         .signup-glow {
-            background: linear-gradient(135deg, #BB0000, #006600);
-            box-shadow: 0 0 20px rgba(0,102,0,0.3), 0 0 30px rgba(187,0,0,0.2);
-            transition: all 0.3s ease;
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            min-height: 42px;
+
+            padding: 0 19px;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 999px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #bb0000,
+                    #006600
+                );
+
+            box-shadow:
+                0 0 20px rgba(0,102,0,.28),
+                0 0 30px rgba(187,0,0,.18);
+
+            transition:
+                transform .3s ease,
+                box-shadow .3s ease;
         }
+
         .signup-glow:hover {
-            box-shadow: 0 0 30px rgba(0,102,0,0.5), 0 0 40px rgba(187,0,0,0.4);
             transform: translateY(-2px);
+
+            box-shadow:
+                0 0 30px rgba(0,102,0,.45),
+                0 0 40px rgba(187,0,0,.3);
+        }
+
+        .user-area {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+
+            padding-left: 18px;
+            margin-left: 2px;
+
+            border-left:
+                1px solid rgba(255,255,255,.1);
         }
 
         .avatar-ring {
-            background: linear-gradient(135deg, #BB0000, #006600);
+            width: 38px;
+            height: 38px;
+
             padding: 2px;
+
+            flex-shrink: 0;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #bb0000,
+                    #006600
+                );
+        }
+
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            background: #0d1117;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .logout-link {
+            color: #9ca3af;
+
+            text-decoration: none;
+
+            font-size: 13px;
+            font-weight: 500;
+
+            transition:
+                color .2s ease;
+        }
+
+        .logout-link:hover {
+            color: #f87171;
+        }
+
+        .mobile-menu-button {
+            width: 44px;
+            height: 44px;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            border:
+                1px solid rgba(255,255,255,.1);
+
+            border-radius: 13px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            color: white;
+
+            cursor: pointer;
+
+            transition:
+                background .2s ease,
+                border-color .2s ease;
+        }
+
+        .mobile-menu-button:hover {
+            background:
+                rgba(255,255,255,.08);
+
+            border-color:
+                rgba(255,255,255,.18);
+        }
+
+        .menu-icon {
+            width: 20px;
+            height: 14px;
+
+            position: relative;
+        }
+
+        .menu-icon span {
+            position: absolute;
+
+            left: 0;
+
+            width: 100%;
+            height: 2px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            transition: .3s ease;
+        }
+
+        .menu-icon span:nth-child(1) {
+            top: 0;
+        }
+
+        .menu-icon span:nth-child(2) {
+            top: 6px;
+        }
+
+        .menu-icon span:nth-child(3) {
+            top: 12px;
+        }
+
+        .mobile-menu-button.open
+        .menu-icon span:nth-child(1) {
+            top: 6px;
+            transform: rotate(45deg);
+        }
+
+        .mobile-menu-button.open
+        .menu-icon span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-button.open
+        .menu-icon span:nth-child(3) {
+            top: 6px;
+            transform: rotate(-45deg);
+        }
+
+        .mobile-menu {
+            display: none;
+
+            max-height: 0;
+            overflow: hidden;
+
+            opacity: 0;
+
+            border-top:
+                1px solid transparent;
+
+            transition:
+                max-height .35s ease,
+                opacity .25s ease,
+                border-color .25s ease;
+        }
+
+        .mobile-menu.open {
+            max-height: 520px;
+            opacity: 1;
+
+            border-top-color:
+                rgba(255,255,255,.06);
+        }
+
+        .mobile-menu-inner {
+            padding:
+                10px
+                16px
+                18px;
+        }
+
+        .mobile-nav-link {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            width: 100%;
+            min-height: 50px;
+
+            padding: 0 14px;
+
+            border-radius: 13px;
+
+            color: #9ca3af;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            transition:
+                background .2s ease,
+                color .2s ease;
+        }
+
+        .mobile-nav-link:hover,
+        .mobile-nav-link.active {
+            background:
+                rgba(255,255,255,.05);
+
+            color: white;
+        }
+
+        .mobile-user-card {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-top: 10px;
+
+            padding: 14px;
+
+            border:
+                1px solid rgba(255,255,255,.07);
+
+            border-radius: 16px;
+
+            background:
+                rgba(255,255,255,.025);
+        }
+
+        .mobile-user-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .mobile-user-name {
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+
+            color: white;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .mobile-user-label {
+            margin-top: 2px;
+
+            color: #6b7280;
+
+            font-size: 11px;
+        }
+
+        .mobile-logout {
+            color: #f87171;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .kenya-underline {
-            background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
+            width: 100%;
             height: 2px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #000 0%,
+                    #000 25%,
+                    #bb0000 25%,
+                    #bb0000 50%,
+                    #fff 50%,
+                    #fff 75%,
+                    #006600 75%,
+                    #006600 100%
+                );
         }
 
-        /* Page fade-in on load */
         main {
-            animation: pageIn 0.6s ease;
             position: relative;
+
             z-index: 1;
+
+            width: 100%;
+            max-width: 1200px;
+
+            margin: 0 auto;
+
+            padding:
+                118px
+                max(16px, env(safe-area-inset-right))
+                60px
+                max(16px, env(safe-area-inset-left));
+
+            animation:
+                pageIn .6s ease;
         }
+
         @keyframes pageIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        ::selection { background: #006600; color: white; }
+        ::-webkit-scrollbar {
+            width: 7px;
+        }
 
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #050608; }
-        ::-webkit-scrollbar-thumb { background: #2a2d33; border-radius: 999px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3a3d43; }
+        ::-webkit-scrollbar-track {
+            background: #050608;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a2d33;
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a3d43;
+        }
+
+        ::selection {
+            background: #006600;
+            color: white;
+        }
+
+        :focus-visible {
+            outline:
+                2px solid #008f3d;
+
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 900px) {
+
+            .desktop-nav {
+                display: none;
+            }
+
+            .mobile-menu-button {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            main {
+                padding-top: 105px;
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            .nav-container {
+                padding-top: 11px;
+                padding-bottom: 11px;
+            }
+
+            .logo-mark {
+                width: 39px;
+                height: 39px;
+
+                border-radius: 12px;
+            }
+
+            .logo-name {
+                font-size: 18px;
+            }
+
+            main {
+                padding:
+                    96px
+                    14px
+                    40px;
+            }
+
+            .bg-orb {
+                filter: blur(70px);
+                opacity: .08;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .logo-name {
+                font-size: 17px;
+            }
+
+            .logo-mark {
+                width: 37px;
+                height: 37px;
+            }
+
+            .mobile-menu-button {
+                width: 42px;
+                height: 42px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                scroll-behavior: auto !important;
+
+                animation-duration:
+                    .01ms !important;
+
+                animation-iteration-count:
+                    1 !important;
+
+                transition-duration:
+                    .01ms !important;
+            }
+        }
+
     </style>
+
+    {% block extra_head %}
+    {% endblock %}
 </head>
+
 <body class="text-white">
 
-    <div class="bg-orb w-96 h-96 bg-red-600 top-0 -left-20"></div>
-    <div class="bg-orb w-96 h-96 bg-green-600 top-1/2 -right-20" style="animation-delay: -8s;"></div>
+    <div
+        class="page-background"
+        aria-hidden="true"
+    >
 
-    <nav class="nav-glass fixed top-0 w-full z-50" id="navbar">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}" class="flex items-center gap-3 group">
-                <div class="logo-mark w-10 h-10 rounded-xl flex items-center justify-center font-bold heading-font text-lg">K</div>
-                <span class="text-xl font-bold heading-font">KaziFile</span>
+        <div
+            class="bg-orb orb-red w-96 h-96"
+            style="top:-100px;left:-100px;"
+        ></div>
+
+        <div
+            class="bg-orb orb-green w-96 h-96"
+            style="top:45%;right:-120px;animation-delay:-8s;"
+        ></div>
+
+    </div>
+
+
+    <nav
+        class="nav-glass"
+        id="navbar"
+        aria-label="Main navigation"
+    >
+
+        <div class="nav-container">
+
+            <a
+                href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}"
+                class="logo-link"
+                aria-label="KaziFile home"
+            >
+
+                <div class="logo-mark heading-font">
+                    K
+                </div>
+
+                <span class="logo-name">
+                    KaziFile
+                </span>
+
             </a>
 
-            <div class="flex items-center gap-8">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="nav-link text-gray-300 hover:text-white text-sm font-medium">Dashboard</a>
-                    <a href="{% url 'upload' %}" class="nav-link text-gray-300 hover:text-white text-sm font-medium">Upload</a>
-                    <a href="{% url 'profile' %}" class="nav-link text-gray-300 hover:text-white text-sm font-medium">Profile</a>
 
-                    <div class="flex items-center gap-3 pl-4 border-l border-white/10">
-                        <div class="avatar-ring w-9 h-9 rounded-full">
-                            <div class="w-full h-full rounded-full bg-[#0d1117] flex items-center justify-center text-sm font-bold">
-                                {{ user.username|first|upper }}
+            <div class="desktop-nav">
+
+                {% if user.is_authenticated %}
+
+                    <a
+                        href="{% url 'dashboard' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                    >
+                        Dashboard
+                    </a>
+
+                    <a
+                        href="{% url 'upload' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
+                    >
+                        Upload
+                    </a>
+
+                    <a
+                        href="{% url 'profile' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                    >
+                        Profile
+                    </a>
+
+                    <div class="user-area">
+
+                        <div class="avatar-ring">
+
+                            <div class="avatar-inner">
+
+                                {% if user.username %}
+                                    {{ user.username|first|upper }}
+                                {% else %}
+                                    U
+                                {% endif %}
+
                             </div>
+
                         </div>
-                        <a href="{% url 'logout' %}" class="text-gray-400 hover:text-red-400 text-sm font-medium transition">Logout</a>
+
+                        <a
+                            href="{% url 'logout' %}"
+                            class="logout-link"
+                        >
+                            Logout
+                        </a>
+
                     </div>
+
                 {% else %}
-                    <a href="{% url 'login' %}" class="nav-link text-gray-300 hover:text-white text-sm font-medium">Login</a>
-                    <a href="{% url 'signup' %}" class="signup-glow text-white px-5 py-2.5 rounded-full text-sm font-semibold">
+
+                    <a
+                        href="{% url 'login' %}"
+                        class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}"
+                    >
+                        Login
+                    </a>
+
+                    <a
+                        href="{% url 'signup' %}"
+                        class="signup-glow"
+                    >
                         Get Started
                     </a>
+
                 {% endif %}
+
             </div>
+
+
+            <button
+                type="button"
+                class="mobile-menu-button"
+                id="mobileMenuButton"
+                aria-label="Open navigation menu"
+                aria-expanded="false"
+                aria-controls="mobileMenu"
+            >
+
+                <span class="menu-icon">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </span>
+
+            </button>
+
         </div>
+
+
         <div class="kenya-underline"></div>
-    </nav>
 
-    <main class="max-w-6xl mx-auto px-6 pt-28 pb-16 relative">
-        {% block content %}
-        {% endblock %}
-    </main>
 
-    <script>
-        const navbar = document.getElementById('navbar');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 20) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
+        <div
+            class="mobile-menu"
+            id="mobileMenu"
+        >
+
+            <div class="mobile-menu-inner">
+
+                {% if user.is_authenticated %}
+
+                    <a
+                        href="{% url 'dashboard' %}"
+                        class="mobile-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                    >
+                        <span>Dashboard</span>
+                        <span>→</span>
+                    </a>
+
+                    <a
+                        href="{% url 'upload' %}"
+                        class="mobile-nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
+                    >
+                        <span>Upload Document</span>
+                        <span>→</span>
+                    </a>
+
+                    <a
+                        href="{% url 'profile' %}"
+                        class="mobile-nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+                    >
+                        <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const navbar =
+                    document.getElementById("navbar");
+
+                const mobileButton =
+                    document.getElementById(
+                        "mobileMenuButton"
+                    );
+
+                const mobileMenu =
+                    document.getElementById(
+                        "mobileMenu"
+                    );
+
+
+                function updateNavbar() {
+
+                    if (!navbar) {
+                        return;
+                    }
+
+                    if (window.scrollY > 20) {
+
+                        navbar.classList.add(
+                            "scrolled"
+                        );
+
+                    } else {
+
+                        navbar.classList.remove(
+                            "scrolled"
+                        );
+
+                    }
+                }
+
+
+                updateNavbar();
+
+
+                window.addEventListener(
+                    "scroll",
+                    updateNavbar,
+                    {
+                        passive: true
+                    }
+                );
+
+
+                if (
+                    mobileButton &&
+                    mobileMenu
+                ) {
+
+                    function openMobileMenu() {
+
+                        mobileMenu.classList.add(
+                            "open"
+                        );
+
+                        mobileButton.classList.add(
+                            "open"
+                        );
+
+                        mobileButton.setAttribute(
+                            "aria-expanded",
+                            "true"
+                        );
+
+                        mobileButton.setAttribute(
+                            "aria-label",
+                            "Close navigation menu"
+                        );
+                    }
+
+
+                    function closeMobileMenu() {
+
+                        mobileMenu.classList.remove(
+                            "open"
+                        );
+
+                        mobileButton.classList.remove(
+                            "open"
+                        );
+
+                        mobileButton.setAttribute(
+                            "aria-expanded",
+                            "false"
+                        );
+
+                        mobileButton.setAttribute(
+                            "aria-label",
+                            "Open navigation menu"
+                        );
+                    }
+
+
+                    mobileButton.addEventListener(
+                        "click",
+                        function () {
+
+                            const isOpen =
+                                mobileMenu.classList.contains(
+                                    "open"
+                                );
+
+                            if (isOpen) {
+
+                                closeMobileMenu();
+
+                            } else {
+
+                                openMobileMenu();
+
+                            }
+                        }
+                    );
+
+
+                    mobileMenu
+                        .querySelectorAll("a")
+                        .forEach(
+                            function (link) {
+
+                                link.addEventListener(
+                                    "click",
+                                    closeMobileMenu
+                                );
+
+                            }
+                        );
+
+
+                    document.addEventListener(
+                        "click",
+                        function (event) {
+
+                            if (
+                                mobileMenu.classList.contains(
+                                    "open"
+                                ) &&
+                                !mobileMenu.contains(
+                                    event.target
+                                ) &&
+                                !mobileButton.contains(
+                                    event.target
+                                )
+                            ) {
+
+                                closeMobileMenu();
+
+                            }
+                        }
+                    );
+
+
+                    document.addEventListener(
+                        "keydown",
+                        function (event) {
+
+                            if (
+                                event.key === "Escape" &&
+                                mobileMenu.classList.contains(
+                                    "open"
+                                )
+                            ) {
+
+                                closeMobileMenu();
+
+                                mobileButton.focus();
+
+                            }
+                        }
+                    );
+
+
+                    window.addEventListener(
+                        "resize",
+                        function () {
+
+                            if (
+                                window.innerWidth > 900
+                            ) {
+
+                                closeMobileMenu();
+
+                            }
+                        }
+                    );
+
+                }
+
             }
-        });
+        );
+
     </script>
+
+
+    {% block extra_scripts %}
+    {% endblock %}
 
 </body>
 </html>

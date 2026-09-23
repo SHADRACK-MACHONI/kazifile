@@ -1,178 +1,1325 @@
+```html
 {% extends 'base.html' %}
-{% block title %}Two-Factor Setup{% endblock %}
+
+{% block title %}Secure Your Account{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-blue-50">
-  <div class="w-full max-w-md animate-fade-up">
-    <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100 text-center">
 
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Set up Two-Factor Authentication</h2>
-      <p class="text-gray-500 text-sm mb-6">Scan this code with Google Authenticator, Authy, or any TOTP app</p>
+<div class="twofa-page">
+    <div class="twofa-orb orb-one"></div>
+    <div class="twofa-orb orb-two"></div>
 
-      <div class="flex justify-center mb-4">
-        <div class="relative">
-          <img src="{{ qr_code_data }}" alt="2FA QR Code"
-               class="w-48 h-48 border border-gray-200 rounded-xl shadow-sm" />
-        </div>
-      </div>
+    <div class="twofa-container">
 
-      {# Fallback manual secret key, only shown if the view passes one #}
-      {% if secret_key %}
-        <div class="mb-6">
-          <button type="button" id="toggle-secret" class="text-xs text-blue-600 hover:underline">
-            Can't scan? Enter code manually
-          </button>
-          <div id="secret-box" class="hidden mt-3 flex items-center justify-center gap-2">
-            <code class="bg-gray-100 px-3 py-1.5 rounded-lg text-sm tracking-wider text-gray-700">{{ secret_key }}</code>
-            <button type="button" id="copy-secret"
-                    class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1.5 rounded-lg transition">
-              Copy
-            </button>
-          </div>
-          <p id="copy-feedback" class="text-xs text-green-600 mt-1 hidden">Copied!</p>
-        </div>
-      {% endif %}
+        <div class="security-header">
+            <div class="security-icon">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 3L19 6V11.5C19 16.2 16.1 20.1 12 21C7.9 20.1 5 16.2 5 11.5V6L12 3Z" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M9 12L11 14L15.5 9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
 
-      {% if error %}
-        <p class="text-red-500 text-sm mb-4 animate-shake">{{ error }}</p>
-      {% endif %}
+            <div class="security-badge">
+                <span></span>
+                Account Protection
+            </div>
 
-      <form method="post" id="otp-form" class="space-y-5" novalidate>
-        {% csrf_token %}
-
-        <div>
-          <p class="text-sm text-gray-600 mb-3">Enter the 6-digit code from your app</p>
-          <div class="flex justify-center gap-2" id="otp-boxes">
-            {% for i in "123456" %}
-              <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
-                     class="otp-digit w-11 h-13 py-2 text-center text-xl font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                     autocomplete="off">
-            {% endfor %}
-          </div>
-          {# Hidden field actually submitted to Django #}
-          <input type="hidden" name="token" id="token-hidden" required>
+            <h1>Secure your account</h1>
+            <p>
+                Add an authenticator app to protect your KaziFile account
+                with an additional verification step.
+            </p>
         </div>
 
-        {# Countdown until the code rotates, purely visual/UX cue #}
-        <div class="flex items-center justify-center gap-2 text-xs text-gray-400">
-          <div class="w-24 h-1 bg-gray-200 rounded-full overflow-hidden">
-            <div id="countdown-bar" class="h-full bg-blue-500 transition-all duration-1000 ease-linear" style="width:100%"></div>
-          </div>
-          <span id="countdown-text">30s</span>
+        <div class="setup-card">
+
+            <div class="progress-track">
+                <div class="progress-line"></div>
+
+                <div class="progress-step active">
+                    <div class="progress-number">1</div>
+                    <span>Scan</span>
+                </div>
+
+                <div class="progress-step active">
+                    <div class="progress-number">2</div>
+                    <span>Verify</span>
+                </div>
+
+                <div class="progress-step">
+                    <div class="progress-number">3</div>
+                    <span>Complete</span>
+                </div>
+            </div>
+
+            <div class="step-heading">
+                <div>
+                    <span class="step-label">STEP 1 OF 2</span>
+                    <h2>Connect your authenticator</h2>
+                </div>
+
+                <div class="step-lock">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                        <path d="M8 10V7.5C8 5.57 9.79 4 12 4C14.21 4 16 5.57 16 7.5V10" stroke="currentColor" stroke-width="1.6"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="instruction-grid">
+
+                <div class="qr-panel">
+                    <div class="qr-glow"></div>
+
+                    <div class="qr-frame">
+                        <img src="{{ qr_code_data }}" alt="Authenticator setup QR code">
+                    </div>
+
+                    <div class="qr-status">
+                        <span class="status-dot"></span>
+                        Ready to scan
+                    </div>
+                </div>
+
+                <div class="instructions">
+
+                    <div class="instruction-item">
+                        <div class="instruction-number">01</div>
+                        <div>
+                            <h3>Open your authenticator</h3>
+                            <p>
+                                Use Google Authenticator, Microsoft Authenticator,
+                                Authy, or another compatible TOTP app.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="instruction-item">
+                        <div class="instruction-number">02</div>
+                        <div>
+                            <h3>Scan this QR code</h3>
+                            <p>
+                                Scan the code displayed beside these instructions
+                                using your authenticator app.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="instruction-item">
+                        <div class="instruction-number">03</div>
+                        <div>
+                            <h3>Enter the verification code</h3>
+                            <p>
+                                Your authenticator will generate a temporary
+                                six-digit verification code.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {% if secret_key %}
+            <div class="manual-section">
+                <button type="button" id="toggle-secret" class="manual-toggle">
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 4V20M4 12H20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        </svg>
+                        Can't scan the QR code?
+                    </span>
+                    <svg id="secret-chevron" class="chevron" viewBox="0 0 24 24" fill="none">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+
+                <div id="secret-box" class="secret-box">
+                    <div class="secret-content">
+                        <div class="secret-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <path d="M7 10V7.5C7 5.01 9.24 3 12 3C14.76 3 17 5.01 17 7.5V10" stroke="currentColor" stroke-width="1.7"/>
+                                <rect x="4" y="10" width="16" height="11" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                            </svg>
+                        </div>
+
+                        <div class="secret-main">
+                            <span>Manual setup key</span>
+                            <code id="secret-value">{{ secret_key }}</code>
+                        </div>
+
+                        <button type="button" id="copy-secret" class="copy-button">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                                <path d="M16 8V6C16 4.9 15.1 4 14 4H6C4.9 4 4 4.9 4 6V14C4 15.1 4.9 16 6 16H8" stroke="currentColor" stroke-width="1.6"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+
+                    <div id="copy-feedback" class="copy-feedback">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Setup key copied
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="error-message">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+                    <path d="M12 8V13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                    <circle cx="12" cy="16.5" r="1" fill="currentColor"/>
+                </svg>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <div class="verification-section">
+
+                <div class="verification-heading">
+                    <div>
+                        <span class="step-label">STEP 2</span>
+                        <h2>Verify your setup</h2>
+                    </div>
+
+                    <div class="timer">
+                        <div class="timer-icon">
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5"/>
+                                <path d="M12 7V12L15 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span id="countdown-text">30s</span>
+                    </div>
+                </div>
+
+                <p class="verification-description">
+                    Enter the six-digit code currently shown in your authenticator app.
+                </p>
+
+                <form method="post" id="otp-form" novalidate>
+                    {% csrf_token %}
+
+                    <div class="otp-wrapper">
+                        <div class="otp-boxes" id="otp-boxes">
+                            {% for i in "123456" %}
+                            <input
+                                type="text"
+                                inputmode="numeric"
+                                pattern="[0-9]*"
+                                maxlength="1"
+                                autocomplete="one-time-code"
+                                class="otp-digit"
+                                aria-label="Verification digit {{ forloop.counter }}"
+                            >
+                            {% endfor %}
+                        </div>
+
+                        <div class="countdown-track">
+                            <div id="countdown-bar"></div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="token" id="token-hidden" required>
+
+                    <button type="submit" id="submit-btn" class="verify-button" disabled>
+                        <span id="btn-text">Verify & Activate</span>
+
+                        <svg id="btn-spinner" class="button-spinner hidden" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" opacity=".25"/>
+                            <path d="M21 12C21 7.03 16.97 3 12 3" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+
+                        <svg id="btn-arrow" class="button-arrow" viewBox="0 0 24 24" fill="none">
+                            <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="security-note">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 3L19 6V11.5C19 16.2 16.1 20.1 12 21C7.9 20.1 5 16.2 5 11.5V6L12 3Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Your authenticator code changes automatically for added protection.</span>
+                </div>
+
+            </div>
         </div>
 
-        <button type="submit" id="submit-btn"
-                class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-          <span id="btn-text">Verify &amp; Activate</span>
-          <svg id="btn-spinner" class="hidden animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>
-        </button>
-      </form>
+        <a href="{% url 'dashboard' %}" class="skip-link">
+            <span>I'll do this later</span>
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M5 12H19M13 6L19 12L13 18" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
 
-      <a href="{% url 'dashboard' %}" class="text-sm text-gray-400 hover:underline mt-5 inline-block">Skip for now</a>
+        <div class="footer-security">
+            <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 3L19 6V11.5C19 16.2 16.1 20.1 12 21C7.9 20.1 5 16.2 5 11.5V6L12 3Z" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            Two-factor authentication
+        </div>
+
     </div>
-  </div>
 </div>
 
 <style>
-@keyframes fade-up { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
-.animate-fade-up { animation: fade-up 0.5s ease-out; }
-@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
-.animate-shake { animation: shake 0.35s ease-in-out; }
+.twofa-page {
+    min-height: calc(100vh - 80px);
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(37,99,235,.12), transparent 32%),
+        radial-gradient(circle at 90% 85%, rgba(124,58,237,.12), transparent 30%),
+        #f8fafc;
+    padding: 56px 18px 70px;
+    color: #0f172a;
+}
+
+.twofa-container {
+    width: 100%;
+    max-width: 940px;
+    margin: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.twofa-orb {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
+.orb-one {
+    width: 300px;
+    height: 300px;
+    background: rgba(37,99,235,.08);
+    top: -100px;
+    left: -120px;
+}
+
+.orb-two {
+    width: 300px;
+    height: 300px;
+    background: rgba(124,58,237,.07);
+    right: -120px;
+    bottom: -120px;
+}
+
+.security-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.security-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: linear-gradient(145deg,#eff6ff,#ffffff);
+    border: 1px solid #dbeafe;
+    border-radius: 20px;
+    box-shadow: 0 14px 35px rgba(37,99,235,.12);
+}
+
+.security-icon svg {
+    width: 34px;
+    height: 34px;
+}
+
+.security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    margin-bottom: 13px;
+}
+
+.security-badge span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 4px rgba(34,197,94,.1);
+}
+
+.security-header h1 {
+    margin: 0;
+    font-size: clamp(28px,5vw,42px);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -.035em;
+    color: #0f172a;
+}
+
+.security-header p {
+    max-width: 580px;
+    margin: 12px auto 0;
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+.setup-card {
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(226,232,240,.9);
+    border-radius: 30px;
+    box-shadow:
+        0 30px 80px rgba(15,23,42,.10),
+        0 5px 20px rgba(15,23,42,.04);
+    padding: 34px;
+}
+
+.progress-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 38px;
+    position: relative;
+}
+
+.progress-line {
+    position: absolute;
+    width: 150px;
+    height: 2px;
+    background: linear-gradient(90deg,#2563eb,#93c5fd);
+    top: 15px;
+    z-index: 0;
+}
+
+.progress-step {
+    width: 120px;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+
+.progress-number {
+    width: 31px;
+    height: 31px;
+    margin: 0 auto 7px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    border: 2px solid #e2e8f0;
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.progress-step.active {
+    color: #2563eb;
+}
+
+.progress-step.active .progress-number {
+    color: white;
+    border-color: #2563eb;
+    background: linear-gradient(135deg,#2563eb,#4f46e5);
+    box-shadow: 0 6px 18px rgba(37,99,235,.25);
+}
+
+.step-heading,
+.verification-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.step-label {
+    display: block;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    margin-bottom: 6px;
+}
+
+.step-heading h2,
+.verification-heading h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    color: #0f172a;
+}
+
+.step-lock,
+.timer-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+}
+
+.step-lock svg,
+.timer-icon svg {
+    width: 21px;
+    height: 21px;
+}
+
+.instruction-grid {
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 40px;
+    align-items: center;
+    margin-top: 28px;
+}
+
+.qr-panel {
+    position: relative;
+    text-align: center;
+}
+
+.qr-frame {
+    width: 260px;
+    height: 260px;
+    margin: auto;
+    padding: 17px;
+    background: white;
+    border-radius: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 18px 45px rgba(15,23,42,.10);
+    position: relative;
+    z-index: 2;
+}
+
+.qr-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+}
+
+.qr-glow {
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    background: rgba(37,99,235,.12);
+    filter: blur(50px);
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.qr-status {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 4px rgba(34,197,94,.1);
+}
+
+.instructions {
+    display: grid;
+    gap: 21px;
+}
+
+.instruction-item {
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 14px;
+}
+
+.instruction-number {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.instruction-item h3 {
+    margin: 1px 0 4px;
+    font-size: 14px;
+    font-weight: 750;
+    color: #1e293b;
+}
+
+.instruction-item p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.65;
+}
+
+.manual-section {
+    margin-top: 30px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 20px;
+}
+
+.manual-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: transparent;
+    border: 0;
+    color: #475569;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0;
+}
+
+.manual-toggle span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.manual-toggle svg {
+    width: 16px;
+    height: 16px;
+}
+
+.chevron {
+    transition: transform .25s ease;
+}
+
+.secret-box {
+    display: none;
+    margin-top: 14px;
+    padding: 15px;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.secret-box.open {
+    display: block;
+    animation: reveal .25s ease;
+}
+
+.secret-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.secret-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.secret-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.secret-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.secret-main span {
+    display: block;
+    font-size: 10px;
+    color: #64748b;
+    margin-bottom: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+.secret-main code {
+    color: #1e293b;
+    font-size: 13px;
+    letter-spacing: .08em;
+    word-break: break-all;
+}
+
+.copy-button {
+    border: 1px solid #dbeafe;
+    background: #eff6ff;
+    color: #2563eb;
+    border-radius: 9px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.copy-button svg {
+    width: 14px;
+    height: 14px;
+}
+
+.copy-feedback {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    color: #16a34a;
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+.copy-feedback.show {
+    display: flex;
+}
+
+.copy-feedback svg {
+    width: 14px;
+    height: 14px;
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 12px 14px;
+    border-radius: 13px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    font-size: 12px;
+}
+
+.error-message svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.verification-section {
+    margin-top: 34px;
+    padding-top: 30px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.timer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.timer-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+}
+
+.timer-icon svg {
+    width: 17px;
+    height: 17px;
+}
+
+.verification-description {
+    margin: 9px 0 22px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.otp-wrapper {
+    max-width: 510px;
+}
+
+.otp-boxes {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+.otp-digit {
+    width: 61px;
+    height: 67px;
+    border-radius: 15px;
+    border: 1.5px solid #dbe3ec;
+    background: #f8fafc;
+    color: #0f172a;
+    text-align: center;
+    font-size: 25px;
+    font-weight: 800;
+    outline: none;
+    transition: .2s ease;
+    caret-color: #2563eb;
+}
+
+.otp-digit:hover {
+    border-color: #bfdbfe;
+    background: #fff;
+}
+
+.otp-digit:focus {
+    border-color: #2563eb;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+    transform: translateY(-2px);
+}
+
+.otp-digit.filled {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.otp-digit.invalid {
+    border-color: #f87171;
+    background: #fef2f2;
+    animation: shake .3s ease;
+}
+
+.countdown-track {
+    height: 3px;
+    margin-top: 14px;
+    border-radius: 999px;
+    background: #e2e8f0;
+    overflow: hidden;
+}
+
+#countdown-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg,#2563eb,#6366f1);
+    transition: width 1s linear;
+}
+
+.verify-button {
+    width: 100%;
+    margin-top: 24px;
+    height: 54px;
+    border: 0;
+    border-radius: 15px;
+    background: linear-gradient(135deg,#2563eb,#4f46e5);
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    box-shadow: 0 13px 28px rgba(37,99,235,.20);
+    transition: .25s ease;
+}
+
+.verify-button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 35px rgba(37,99,235,.28);
+}
+
+.verify-button:disabled {
+    cursor: not-allowed;
+    opacity: .55;
+    box-shadow: none;
+}
+
+.button-arrow {
+    width: 18px;
+    height: 18px;
+}
+
+.button-spinner {
+    width: 18px;
+    height: 18px;
+    animation: spin .8s linear infinite;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.security-note {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #94a3b8;
+    font-size: 10px;
+    text-align: center;
+}
+
+.security-note svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.skip-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+    color: #64748b;
+    font-size: 12px;
+    text-decoration: none;
+    transition: .2s ease;
+}
+
+.skip-link:hover {
+    color: #2563eb;
+}
+
+.skip-link svg {
+    width: 14px;
+    height: 14px;
+    transition: transform .2s ease;
+}
+
+.skip-link:hover svg {
+    transform: translateX(3px);
+}
+
+.footer-security {
+    margin-top: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    color: #94a3b8;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.footer-security svg {
+    width: 14px;
+    height: 14px;
+}
+
+@keyframes reveal {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+    .twofa-page {
+        padding: 35px 12px 50px;
+    }
+
+    .setup-card {
+        padding: 23px 18px;
+        border-radius: 23px;
+    }
+
+    .instruction-grid {
+        grid-template-columns: 1fr;
+        gap: 27px;
+    }
+
+    .qr-frame {
+        width: 220px;
+        height: 220px;
+    }
+
+    .instructions {
+        gap: 17px;
+    }
+
+    .progress-track {
+        margin-bottom: 28px;
+    }
+
+    .progress-step {
+        width: 95px;
+    }
+
+    .progress-line {
+        width: 110px;
+    }
+
+    .otp-boxes {
+        justify-content: center;
+        gap: 7px;
+    }
+
+    .otp-digit {
+        width: 47px;
+        height: 57px;
+        font-size: 21px;
+        border-radius: 12px;
+    }
+
+    .verification-heading h2,
+    .step-heading h2 {
+        font-size: 18px;
+    }
+}
+
+@media (max-width: 420px) {
+    .security-header h1 {
+        font-size: 28px;
+    }
+
+    .security-header p {
+        font-size: 13px;
+    }
+
+    .setup-card {
+        padding: 20px 14px;
+    }
+
+    .otp-boxes {
+        gap: 5px;
+    }
+
+    .otp-digit {
+        width: 43px;
+        height: 54px;
+    }
+
+    .progress-step {
+        width: 82px;
+        font-size: 9px;
+    }
+
+    .progress-line {
+        width: 90px;
+    }
+
+    .secret-content {
+        align-items: flex-start;
+    }
+
+    .copy-button {
+        padding: 7px;
+    }
+
+    .copy-button {
+        font-size: 0;
+    }
+
+    .copy-button svg {
+        width: 16px;
+        height: 16px;
+    }
+}
 </style>
 
+{% endblock %}
+```
+```html
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const boxes = Array.from(document.querySelectorAll('.otp-digit'));
-  const hiddenInput = document.getElementById('token-hidden');
-  const form = document.getElementById('otp-form');
-  const submitBtn = document.getElementById('submit-btn');
-  const btnText = document.getElementById('btn-text');
-  const btnSpinner = document.getElementById('btn-spinner');
+document.addEventListener("DOMContentLoaded", function () {
+    const boxes = Array.from(document.querySelectorAll(".otp-digit"));
+    const hiddenInput = document.getElementById("token-hidden");
+    const form = document.getElementById("otp-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const btnText = document.getElementById("btn-text");
+    const btnSpinner = document.getElementById("btn-spinner");
+    const btnArrow = document.getElementById("btn-arrow");
+    const countdownBar = document.getElementById("countdown-bar");
+    const countdownText = document.getElementById("countdown-text");
 
-  function syncHiddenField() {
-    hiddenInput.value = boxes.map(b => b.value).join('');
-  }
+    let submitting = false;
+    let seconds = 30;
 
-  boxes.forEach(function (box, idx) {
-    box.addEventListener('input', function () {
-      box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
-      if (box.value && idx < boxes.length - 1) boxes[idx + 1].focus();
-      syncHiddenField();
-      // Auto-submit once all 6 digits are filled
-      if (boxes.every(b => b.value.length === 1)) {
-        form.requestSubmit();
-      }
-    });
-
-    box.addEventListener('keydown', function (e) {
-      if (e.key === 'Backspace' && !box.value && idx > 0) {
-        boxes[idx - 1].focus();
-      }
-    });
-
-    // Paste a full 6-digit code into any box
-    box.addEventListener('paste', function (e) {
-      e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-      if (!pasted) return;
-      pasted.slice(0, 6).split('').forEach(function (digit, i) {
-        if (boxes[i]) boxes[i].value = digit;
-      });
-      syncHiddenField();
-      const nextEmpty = boxes.find(b => !b.value);
-      (nextEmpty || boxes[boxes.length - 1]).focus();
-      if (boxes.every(b => b.value.length === 1)) form.requestSubmit();
-    });
-  });
-
-  boxes[0].focus();
-
-  form.addEventListener('submit', function (e) {
-    syncHiddenField();
-    if (hiddenInput.value.length !== 6) {
-      e.preventDefault();
-      boxes.forEach(b => b.classList.add('border-red-400'));
-      return;
+    function getCode() {
+        return boxes.map(function (box) {
+            return box.value;
+        }).join("");
     }
-    if (submitBtn.disabled) { e.preventDefault(); return; }
-    submitBtn.disabled = true;
-    btnText.textContent = 'Verifying...';
-    btnSpinner.classList.remove('hidden');
-  });
 
-  // Manual secret key reveal + copy
-  const toggleSecret = document.getElementById('toggle-secret');
-  const secretBox = document.getElementById('secret-box');
-  const copyBtn = document.getElementById('copy-secret');
-  const copyFeedback = document.getElementById('copy-feedback');
+    function syncCode() {
+        hiddenInput.value = getCode();
 
-  if (toggleSecret) {
-    toggleSecret.addEventListener('click', function () {
-      secretBox.classList.toggle('hidden');
+        boxes.forEach(function (box) {
+            box.classList.toggle("filled", box.value.length === 1);
+            box.classList.remove("invalid");
+        });
+
+        submitBtn.disabled = getCode().length !== 6;
+    }
+
+    function focusNext(index) {
+        if (index < boxes.length - 1) {
+            boxes[index + 1].focus();
+            boxes[index + 1].select();
+        }
+    }
+
+    function focusPrevious(index) {
+        if (index > 0) {
+            boxes[index - 1].focus();
+            boxes[index - 1].select();
+        }
+    }
+
+    function completeCode() {
+        if (getCode().length === 6) {
+            submitBtn.disabled = false;
+            boxes[boxes.length - 1].blur();
+        }
+    }
+
+    boxes.forEach(function (box, index) {
+        box.addEventListener("input", function () {
+            box.value = box.value.replace(/\D/g, "").slice(0, 1);
+
+            if (box.value) {
+                focusNext(index);
+            }
+
+            syncCode();
+            completeCode();
+        });
+
+        box.addEventListener("keydown", function (event) {
+            if (event.key === "Backspace" && !box.value) {
+                event.preventDefault();
+                focusPrevious(index);
+            }
+
+            if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                focusPrevious(index);
+            }
+
+            if (event.key === "ArrowRight") {
+                event.preventDefault();
+                focusNext(index);
+            }
+
+            if (event.key === "Enter" && getCode().length === 6) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        box.addEventListener("focus", function () {
+            box.select();
+        });
+
+        box.addEventListener("paste", function (event) {
+            event.preventDefault();
+
+            const clipboard = event.clipboardData || window.clipboardData;
+            const pasted = clipboard.getData("text").replace(/\D/g, "").slice(0, 6);
+
+            if (!pasted) {
+                return;
+            }
+
+            pasted.split("").forEach(function (digit, index) {
+                if (boxes[index]) {
+                    boxes[index].value = digit;
+                }
+            });
+
+            syncCode();
+            completeCode();
+
+            const emptyBox = boxes.find(function (item) {
+                return !item.value;
+            });
+
+            if (emptyBox) {
+                emptyBox.focus();
+            } else {
+                boxes[boxes.length - 1].blur();
+            }
+        });
     });
-  }
-  if (copyBtn) {
-    copyBtn.addEventListener('click', function () {
-      const code = copyBtn.previousElementSibling.textContent.trim();
-      navigator.clipboard.writeText(code).then(function () {
-        copyFeedback.classList.remove('hidden');
-        setTimeout(function () { copyFeedback.classList.add('hidden'); }, 1500);
-      });
-    });
-  }
 
-  // Purely cosmetic 30s countdown ring matching typical TOTP rotation
-  let seconds = 30;
-  const bar = document.getElementById('countdown-bar');
-  const text = document.getElementById('countdown-text');
-  setInterval(function () {
-    seconds = seconds > 0 ? seconds - 1 : 30;
-    bar.style.width = (seconds / 30 * 100) + '%';
-    text.textContent = seconds + 's';
-  }, 1000);
+    form.addEventListener("submit", function (event) {
+        syncCode();
+
+        if (hiddenInput.value.length !== 6) {
+            event.preventDefault();
+
+            boxes.forEach(function (box) {
+                box.classList.add("invalid");
+            });
+
+            const firstEmpty = boxes.find(function (box) {
+                return !box.value;
+            });
+
+            if (firstEmpty) {
+                firstEmpty.focus();
+            }
+
+            return;
+        }
+
+        if (submitting) {
+            event.preventDefault();
+            return;
+        }
+
+        submitting = true;
+        submitBtn.disabled = true;
+        btnText.textContent = "Verifying...";
+        btnArrow.classList.add("hidden");
+        btnSpinner.classList.remove("hidden");
+    });
+
+    const toggleSecret = document.getElementById("toggle-secret");
+    const secretBox = document.getElementById("secret-box");
+    const secretChevron = document.getElementById("secret-chevron");
+    const copyButton = document.getElementById("copy-secret");
+    const copyFeedback = document.getElementById("copy-feedback");
+    const secretValue = document.getElementById("secret-value");
+
+    if (toggleSecret && secretBox) {
+        toggleSecret.addEventListener("click", function () {
+            secretBox.classList.toggle("open");
+
+            if (secretChevron) {
+                secretChevron.style.transform = secretBox.classList.contains("open")
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)";
+            }
+        });
+    }
+
+    if (copyButton && secretValue) {
+        copyButton.addEventListener("click", async function () {
+            const value = secretValue.textContent.trim();
+
+            try {
+                await navigator.clipboard.writeText(value);
+
+                if (copyFeedback) {
+                    copyFeedback.classList.add("show");
+
+                    setTimeout(function () {
+                        copyFeedback.classList.remove("show");
+                    }, 1800);
+                }
+
+                copyButton.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12L10 17L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Copied
+                `;
+
+                setTimeout(function () {
+                    copyButton.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/>
+                            <path d="M16 8V6C16 4.9 15.1 4 14 4H6C4.9 4 4 4.9 4 6V14C4 15.1 4.9 16 6 16H8" stroke="currentColor" stroke-width="1.6"/>
+                        </svg>
+                        Copy
+                    `;
+                }, 1800);
+            } catch (error) {
+                const range = document.createRange();
+                range.selectNodeContents(secretValue);
+
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
+            }
+        });
+    }
+
+    function updateCountdown() {
+        countdownText.textContent = seconds + "s";
+        countdownBar.style.width = (seconds / 30 * 100) + "%";
+
+        if (seconds <= 5) {
+            countdownText.style.color = "#dc2626";
+            countdownBar.style.background = "#ef4444";
+        } else {
+            countdownText.style.color = "#64748b";
+            countdownBar.style.background = "linear-gradient(90deg,#2563eb,#6366f1)";
+        }
+    }
+
+    updateCountdown();
+
+    setInterval(function () {
+        seconds--;
+
+        if (seconds < 0) {
+            seconds = 30;
+        }
+
+        updateCountdown();
+    }, 1000);
+
+    boxes[0].focus();
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "/" && document.activeElement.tagName !== "INPUT") {
+            event.preventDefault();
+            boxes[0].focus();
+        }
+    });
 });
 </script>
-{% endblock %}
+```

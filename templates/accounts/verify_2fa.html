@@ -1,112 +1,726 @@
+```html
 {% extends 'base.html' %}
+
 {% block title %}Verify Code{% endblock %}
 
 {% block content %}
-<div class="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-blue-50">
-  <div class="w-full max-w-md animate-fade-up">
-    <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100 text-center">
-
-      <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-50 flex items-center justify-center">
-        <svg class="w-7 h-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-      </div>
-
-      <h2 class="text-2xl font-bold text-gray-800 mb-2">Enter verification code</h2>
-      <p class="text-gray-500 text-sm mb-6">Open your authenticator app and enter the 6-digit code</p>
-
-      <form method="post" id="otp-form" class="space-y-6" novalidate>
-        {% csrf_token %}
-
-        <div class="flex justify-center gap-2" id="otp-boxes">
-          {% for i in "123456" %}
-            <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
-                   class="otp-digit w-11 h-13 py-2 text-center text-xl font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                   autocomplete="one-time-code">
-          {% endfor %}
-        </div>
-        <input type="hidden" name="token" id="token-hidden" required>
-
-        {% if request.GET.next %}
-          <input type="hidden" name="next" value="{{ request.GET.next }}">
-        {% endif %}
-
-        <button type="submit" id="submit-btn"
-                class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-          <span id="btn-text">Verify</span>
-          <svg id="btn-spinner" class="hidden animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-          </svg>
-        </button>
-      </form>
-
-      {% if allow_recovery_code %}
-        <a href="{% url 'use_recovery_code' %}" class="text-sm text-gray-400 hover:underline mt-5 inline-block">
-          Use a backup code instead
-        </a>
-      {% endif %}
-    </div>
-  </div>
-</div>
 
 <style>
-@keyframes fade-up { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
-.animate-fade-up { animation: fade-up 0.5s ease-out; }
+    body {
+        background:
+            radial-gradient(circle at 10% 10%, rgba(37,99,235,.12), transparent 30%),
+            radial-gradient(circle at 90% 90%, rgba(124,58,237,.10), transparent 30%),
+            #070b14;
+    }
+
+    .verify-page {
+        min-height: calc(100vh - 80px);
+        position: relative;
+        overflow: hidden;
+        color: white;
+    }
+
+    .verify-orb {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        filter: blur(100px);
+        pointer-events: none;
+        opacity: .10;
+    }
+
+    .verify-orb-blue {
+        background: #2563eb;
+        top: -130px;
+        left: -100px;
+    }
+
+    .verify-orb-purple {
+        background: #7c3aed;
+        bottom: -140px;
+        right: -100px;
+    }
+
+    .security-card {
+        background: rgba(255,255,255,.045);
+        border: 1px solid rgba(255,255,255,.09);
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        box-shadow:
+            0 30px 80px rgba(0,0,0,.30),
+            inset 0 1px 0 rgba(255,255,255,.04);
+    }
+
+    .security-icon {
+        width: 76px;
+        height: 76px;
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(37,99,235,.18),
+                rgba(124,58,237,.18)
+            );
+        border: 1px solid rgba(96,165,250,.20);
+        box-shadow:
+            0 0 40px rgba(37,99,235,.10);
+    }
+
+    .security-icon svg {
+        width: 34px;
+        height: 34px;
+    }
+
+    .gradient-title {
+        background:
+            linear-gradient(
+                135deg,
+                #ffffff,
+                #bfdbfe 55%,
+                #c4b5fd
+            );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .security-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 11px;
+        border-radius: 999px;
+        background: rgba(52,211,153,.07);
+        border: 1px solid rgba(52,211,153,.12);
+        color: #6ee7b7;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 10px rgba(52,211,153,.8);
+    }
+
+    .otp-container {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .otp-digit {
+        width: 52px;
+        height: 62px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+        caret-color: #60a5fa;
+        background: rgba(255,255,255,.035);
+        border: 1px solid rgba(255,255,255,.10);
+        border-radius: 15px;
+        outline: none;
+        transition:
+            transform .2s ease,
+            border-color .2s ease,
+            background .2s ease,
+            box-shadow .2s ease;
+    }
+
+    .otp-digit:hover {
+        border-color: rgba(255,255,255,.18);
+        background: rgba(255,255,255,.055);
+    }
+
+    .otp-digit:focus {
+        transform: translateY(-2px);
+        border-color: rgba(96,165,250,.65);
+        background: rgba(37,99,235,.08);
+        box-shadow:
+            0 0 0 4px rgba(37,99,235,.08),
+            0 10px 30px rgba(37,99,235,.08);
+    }
+
+    .otp-digit.filled {
+        border-color: rgba(96,165,250,.30);
+        background: rgba(37,99,235,.07);
+    }
+
+    .otp-digit.error {
+        border-color: rgba(248,113,113,.65);
+        background: rgba(239,68,68,.07);
+        animation: shake .35s ease;
+    }
+
+    @keyframes shake {
+        0%,100% {
+            transform: translateX(0);
+        }
+        25% {
+            transform: translateX(-5px);
+        }
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    .verify-button {
+        min-height: 50px;
+        position: relative;
+        overflow: hidden;
+        background:
+            linear-gradient(
+                135deg,
+                #2563eb,
+                #4f46e5
+            );
+        box-shadow:
+            0 12px 30px rgba(37,99,235,.18);
+        transition: .3s ease;
+    }
+
+    .verify-button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow:
+            0 16px 38px rgba(37,99,235,.28);
+    }
+
+    .verify-button:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .verify-button:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+    }
+
+    .verify-button::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -120%;
+        width: 70%;
+        height: 100%;
+        transform: skewX(-20deg);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255,255,255,.16),
+            transparent
+        );
+        transition: left .6s ease;
+    }
+
+    .verify-button:hover::after {
+        left: 140%;
+    }
+
+    .security-note {
+        background: rgba(255,255,255,.025);
+        border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .error-message {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 13px;
+        border-radius: 12px;
+        background: rgba(239,68,68,.07);
+        border: 1px solid rgba(239,68,68,.14);
+        color: #fca5a5;
+        font-size: 12px;
+    }
+
+    .recovery-link {
+        color: #9ca3af;
+        transition: .2s ease;
+    }
+
+    .recovery-link:hover {
+        color: white;
+    }
+
+    .reveal {
+        animation: reveal .65s ease both;
+    }
+
+    @keyframes reveal {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .verify-page {
+            min-height: calc(100vh - 65px);
+        }
+
+        .security-card {
+            border-radius: 24px;
+            padding: 24px 18px;
+        }
+
+        .security-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 21px;
+        }
+
+        .security-icon svg {
+            width: 30px;
+            height: 30px;
+        }
+
+        .otp-container {
+            gap: 6px;
+        }
+
+        .otp-digit {
+            width: 44px;
+            height: 56px;
+            border-radius: 13px;
+            font-size: 21px;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .otp-container {
+            gap: 4px;
+        }
+
+        .otp-digit {
+            width: 40px;
+            height: 52px;
+            font-size: 19px;
+        }
+    }
 </style>
 
+<div class="verify-page flex items-center justify-center px-4 py-8 sm:py-12">
+
+    <div class="verify-orb verify-orb-blue"></div>
+    <div class="verify-orb verify-orb-purple"></div>
+
+    <div class="w-full max-w-md reveal">
+
+        <div class="security-card rounded-3xl p-5 sm:p-8">
+
+            <div class="text-center">
+
+                <div class="security-icon mb-5">
+
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.7"
+                        class="text-blue-400"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                        />
+                    </svg>
+
+                </div>
+
+                <div class="security-status mb-4">
+
+                    <span class="status-dot"></span>
+
+                    Secure verification
+
+                </div>
+
+                <h1 class="gradient-title text-2xl sm:text-3xl font-bold">
+                    Verify your identity
+                </h1>
+
+                <p class="text-gray-400 text-sm mt-3 leading-6">
+                    Enter the 6-digit verification code from your authenticator app to continue.
+                </p>
+
+            </div>
+
+            {% if messages %}
+
+            <div class="space-y-2 mt-6">
+
+                {% for message in messages %}
+
+                <div class="error-message">
+
+                    <span>!</span>
+
+                    <span>{{ message }}</span>
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            <form
+                method="post"
+                id="otp-form"
+                class="mt-7"
+                novalidate
+            >
+
+                {% csrf_token %}
+
+                <div
+                    class="otp-container"
+                    id="otp-boxes"
+                    aria-label="Six digit verification code"
+                >
+
+                    {% for i in "123456" %}
+
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        maxlength="1"
+                        class="otp-digit"
+                        autocomplete="one-time-code"
+                        aria-label="Verification digit {{ forloop.counter }}"
+                    >
+
+                    {% endfor %}
+
+                </div>
+
+                <input
+                    type="hidden"
+                    name="token"
+                    id="token-hidden"
+                    required
+                >
+
+                {% if request.GET.next %}
+
+                <input
+                    type="hidden"
+                    name="next"
+                    value="{{ request.GET.next }}"
+                >
+
+                {% endif %}
+
+                <div
+                    id="otp-error"
+                    class="hidden error-message mt-4"
+                >
+                    <span>!</span>
+                    <span>Please enter all 6 digits.</span>
+                </div>
+
+                <button
+                    type="submit"
+                    id="submit-btn"
+                    disabled
+                    class="verify-button w-full mt-6 rounded-xl text-white font-semibold flex items-center justify-center gap-2"
+                >
+
+                    <span id="btn-text">
+                        Verify Code
+                    </span>
+
+                    <svg
+                        id="btn-spinner"
+                        class="hidden animate-spin h-4 w-4"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                    >
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"
+                        ></circle>
+
+                        <path
+                            class="opacity-80"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        ></path>
+
+                    </svg>
+
+                </button>
+
+            </form>
+
+            <div class="security-note rounded-xl p-3.5 mt-5">
+
+                <div class="flex gap-3">
+
+                    <span class="text-blue-400 text-sm">
+                        🔒
+                    </span>
+
+                    <p class="text-xs text-gray-500 leading-5">
+                        Your verification code is temporary and should never be shared with anyone.
+                    </p>
+
+                </div>
+
+            </div>
+
+            {% if allow_recovery_code %}
+
+            <div class="text-center mt-5">
+
+                <a
+                    href="{% url 'use_recovery_code' %}"
+                    class="recovery-link text-sm"
+                >
+                    Use a backup code instead
+                </a>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="text-center mt-5">
+
+            <p class="text-xs text-gray-600">
+                KaziFile Security
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const boxes = Array.from(document.querySelectorAll('.otp-digit'));
-  const hiddenInput = document.getElementById('token-hidden');
-  const form = document.getElementById('otp-form');
-  const submitBtn = document.getElementById('submit-btn');
-  const btnText = document.getElementById('btn-text');
-  const btnSpinner = document.getElementById('btn-spinner');
+document.addEventListener("DOMContentLoaded", function () {
 
-  function syncHiddenField() {
-    hiddenInput.value = boxes.map(b => b.value).join('');
-  }
+    const boxes = Array.from(
+        document.querySelectorAll(".otp-digit")
+    );
 
-  boxes.forEach(function (box, idx) {
-    box.addEventListener('input', function () {
-      box.value = box.value.replace(/[^0-9]/g, '').slice(0, 1);
-      if (box.value && idx < boxes.length - 1) boxes[idx + 1].focus();
-      syncHiddenField();
-      if (boxes.every(b => b.value.length === 1)) form.requestSubmit();
-    });
+    const hiddenInput =
+        document.getElementById("token-hidden");
 
-    box.addEventListener('keydown', function (e) {
-      if (e.key === 'Backspace' && !box.value && idx > 0) boxes[idx - 1].focus();
-    });
+    const form =
+        document.getElementById("otp-form");
 
-    box.addEventListener('paste', function (e) {
-      e.preventDefault();
-      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-      if (!pasted) return;
-      pasted.slice(0, 6).split('').forEach(function (digit, i) {
-        if (boxes[i]) boxes[i].value = digit;
-      });
-      syncHiddenField();
-      const nextEmpty = boxes.find(b => !b.value);
-      (nextEmpty || boxes[boxes.length - 1]).focus();
-      if (boxes.every(b => b.value.length === 1)) form.requestSubmit();
-    });
-  });
+    const submitBtn =
+        document.getElementById("submit-btn");
 
-  boxes[0].focus();
+    const btnText =
+        document.getElementById("btn-text");
 
-  form.addEventListener('submit', function (e) {
-    syncHiddenField();
-    if (hiddenInput.value.length !== 6) {
-      e.preventDefault();
-      return;
+    const btnSpinner =
+        document.getElementById("btn-spinner");
+
+    const otpError =
+        document.getElementById("otp-error");
+
+    if (!boxes.length || !form) {
+        return;
     }
-    if (submitBtn.disabled) { e.preventDefault(); return; }
-    submitBtn.disabled = true;
-    btnText.textContent = 'Verifying...';
-    btnSpinner.classList.remove('hidden');
-  });
+
+    function getToken() {
+        return boxes
+            .map(function (box) {
+                return box.value;
+            })
+            .join("");
+    }
+
+    function syncToken() {
+
+        const token = getToken();
+
+        hiddenInput.value = token;
+
+        const complete = token.length === 6;
+
+        submitBtn.disabled = !complete;
+
+        boxes.forEach(function (box) {
+
+            if (box.value) {
+                box.classList.add("filled");
+            } else {
+                box.classList.remove("filled");
+            }
+
+        });
+
+        if (complete && otpError) {
+            otpError.classList.add("hidden");
+        }
+    }
+
+    function focusFirstEmpty() {
+
+        const emptyBox = boxes.find(function (box) {
+            return !box.value;
+        });
+
+        if (emptyBox) {
+            emptyBox.focus();
+        }
+    }
+
+    boxes.forEach(function (box, index) {
+
+        box.addEventListener("input", function () {
+
+            box.value =
+                box.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 1);
+
+            if (box.value && index < boxes.length - 1) {
+                boxes[index + 1].focus();
+            }
+
+            syncToken();
+
+        });
+
+        box.addEventListener("keydown", function (event) {
+
+            if (
+                event.key === "Backspace" &&
+                !box.value &&
+                index > 0
+            ) {
+                boxes[index - 1].focus();
+                boxes[index - 1].value = "";
+                syncToken();
+            }
+
+            if (
+                event.key === "ArrowLeft" &&
+                index > 0
+            ) {
+                boxes[index - 1].focus();
+            }
+
+            if (
+                event.key === "ArrowRight" &&
+                index < boxes.length - 1
+            ) {
+                boxes[index + 1].focus();
+            }
+
+        });
+
+        box.addEventListener("paste", function (event) {
+
+            event.preventDefault();
+
+            const pasted =
+                (
+                    event.clipboardData ||
+                    window.clipboardData
+                )
+                .getData("text")
+                .replace(/[^0-9]/g, "")
+                .slice(0, 6);
+
+            if (!pasted) {
+                return;
+            }
+
+            pasted
+                .split("")
+                .forEach(function (digit, index) {
+
+                    if (boxes[index]) {
+                        boxes[index].value = digit;
+                    }
+
+                });
+
+            syncToken();
+
+            focusFirstEmpty();
+
+            if (getToken().length === 6) {
+                submitBtn.focus();
+            }
+
+        });
+
+        box.addEventListener("focus", function () {
+            box.select();
+        });
+
+    });
+
+    boxes[0].focus();
+
+    form.addEventListener("submit", function (event) {
+
+        syncToken();
+
+        const token = hiddenInput.value;
+
+        if (token.length !== 6) {
+
+            event.preventDefault();
+
+            if (otpError) {
+                otpError.classList.remove("hidden");
+            }
+
+            boxes.forEach(function (box) {
+                box.classList.add("error");
+
+                setTimeout(function () {
+                    box.classList.remove("error");
+                }, 400);
+            });
+
+            focusFirstEmpty();
+
+            return;
+        }
+
+        if (submitBtn.disabled) {
+            event.preventDefault();
+            return;
+        }
+
+        submitBtn.disabled = true;
+
+        btnText.textContent = "Verifying...";
+
+        btnSpinner.classList.remove("hidden");
+
+    });
+
 });
 </script>
+
 {% endblock %}
+```

@@ -1,232 +1,1747 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>KaziFile — Your Documents, Always Ready</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-    * { font-family: 'Inter', sans-serif; }
-    h1, h2, h3, .heading-font { font-family: 'Space Grotesk', sans-serif; }
+    <meta charset="UTF-8">
 
-    body {
-        background: #0a0e1a;
-        overflow-x: hidden;
-    }
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
-    /* Animated gradient mesh background */
-    .mesh-bg {
-        position: fixed;
-        inset: 0;
-        z-index: 0;
-        background:
-            radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.25), transparent 40%),
-            radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.25), transparent 40%),
-            radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.15), transparent 40%);
-        animation: meshMove 15s ease-in-out infinite alternate;
-    }
+    <title>KaziFile — Your Documents, Always Ready</title>
 
-    @keyframes meshMove {
-        0% { transform: scale(1) translate(0, 0); }
-        100% { transform: scale(1.1) translate(-30px, 30px); }
-    }
+    <meta
+        name="description"
+        content="KaziFile helps you organize, access and share important documents from one digital workspace."
+    >
 
-    /* Floating orbs */
-    .orb {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(60px);
-        opacity: 0.5;
-        animation: float 8s ease-in-out infinite;
-    }
+    <meta name="theme-color" content="#050608">
 
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) translateX(0px); }
-        50% { transform: translateY(-30px) translateX(20px); }
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
 
-    /* Glassmorphism card */
-    .glass {
-        background: rgba(255, 255, 255, 0.04);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+        crossorigin
+    >
 
-    .glass:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        transform: translateY(-6px);
-    }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
-    /* Gradient text */
-    .gradient-text {
-        background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        background-size: 200% auto;
-        animation: shine 4s linear infinite;
-    }
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    @keyframes shine {
-        to { background-position: 200% center; }
-    }
+    <style>
 
-    /* Glow button */
-    .glow-btn {
-        position: relative;
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
-        transition: all 0.3s ease;
-    }
+        * {
+            box-sizing: border-box;
+        }
 
-    .glow-btn:hover {
-        box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.5);
-        transform: translateY(-2px) scale(1.02);
-    }
+        html {
+            scroll-behavior: smooth;
+            background: #050608;
+        }
 
-    /* Fade-in-up on scroll */
-    .fade-up {
-        opacity: 0;
-        transform: translateY(40px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    .fade-up.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: #050608;
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
 
-    /* Grid pattern overlay */
-    .grid-pattern {
-        background-image:
-            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-        background-size: 40px 40px;
-    }
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
 
-    /* Nav blur on scroll */
-    .nav-blur {
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        background: rgba(10, 14, 26, 0.7);
-    }
+        a,
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    ::selection { background: #8b5cf6; color: white; }
-</style>
+        button {
+            font-family: inherit;
+        }
+
+        .background-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            background: #050608;
+        }
+
+        .mesh-bg {
+            position: absolute;
+            inset: -10%;
+
+            background:
+                radial-gradient(
+                    circle at 15% 20%,
+                    rgba(59,130,246,.18),
+                    transparent 38%
+                ),
+                radial-gradient(
+                    circle at 82% 25%,
+                    rgba(139,92,246,.18),
+                    transparent 38%
+                ),
+                radial-gradient(
+                    circle at 50% 85%,
+                    rgba(16,185,129,.10),
+                    transparent 40%
+                );
+
+            animation:
+                meshMove 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshMove {
+
+            0% {
+                transform:
+                    scale(1)
+                    translate3d(0,0,0);
+            }
+
+            100% {
+                transform:
+                    scale(1.08)
+                    translate3d(-25px,25px,0);
+            }
+        }
+
+        .grid-pattern {
+            position: absolute;
+            inset: 0;
+
+            background-image:
+                linear-gradient(
+                    rgba(255,255,255,.025) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,.025) 1px,
+                    transparent 1px
+                );
+
+            background-size: 40px 40px;
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent 90%
+                );
+
+            -webkit-mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent 90%
+                );
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: .25;
+
+            animation:
+                floatingOrb 9s ease-in-out infinite;
+        }
+
+        @keyframes floatingOrb {
+
+            0%,
+            100% {
+                transform:
+                    translate3d(0,0,0);
+            }
+
+            50% {
+                transform:
+                    translate3d(20px,-25px,0);
+            }
+        }
+
+        .site-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.06);
+
+            background:
+                rgba(5,6,8,.58);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            transition:
+                background .3s ease,
+                box-shadow .3s ease;
+        }
+
+        .site-nav.scrolled {
+            background:
+                rgba(5,6,8,.90);
+
+            box-shadow:
+                0 10px 40px rgba(0,0,0,.35);
+        }
+
+        .nav-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+
+            min-height: 72px;
+
+            padding:
+                12px
+                max(16px, env(safe-area-inset-right))
+                12px
+                max(16px, env(safe-area-inset-left));
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+
+            color: white;
+            text-decoration: none;
+
+            flex-shrink: 0;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #3b82f6,
+                    #8b5cf6
+                );
+
+            box-shadow:
+                0 0 25px
+                rgba(59,130,246,.25);
+
+            font-family:
+                'Space Grotesk',
+                sans-serif;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            transition:
+                transform .3s ease;
+        }
+
+        .brand:hover .brand-mark {
+            transform:
+                rotate(-6deg)
+                scale(1.05);
+        }
+
+        .brand-name {
+            font-family:
+                'Space Grotesk',
+                sans-serif;
+
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .desktop-navigation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link {
+            min-height: 42px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 14px;
+
+            color: #9ca3af;
+
+            text-decoration: none;
+
+            border-radius: 999px;
+
+            font-size: 14px;
+            font-weight: 500;
+
+            transition:
+                color .2s ease,
+                background .2s ease;
+        }
+
+        .nav-link:hover {
+            color: white;
+
+            background:
+                rgba(255,255,255,.05);
+        }
+
+        .glow-btn {
+            position: relative;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            min-height: 46px;
+
+            padding: 0 22px;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 999px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #3b82f6,
+                    #8b5cf6
+                );
+
+            box-shadow:
+                0 0 20px
+                rgba(59,130,246,.30),
+                0 0 35px
+                rgba(139,92,246,.18);
+
+            transition:
+                transform .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .glow-btn:hover {
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 0 30px
+                rgba(59,130,246,.50),
+                0 0 55px
+                rgba(139,92,246,.28);
+        }
+
+        .mobile-menu-button {
+            display: none;
+
+            width: 44px;
+            height: 44px;
+
+            align-items: center;
+            justify-content: center;
+
+            border:
+                1px solid
+                rgba(255,255,255,.10);
+
+            border-radius: 13px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            color: white;
+
+            cursor: pointer;
+        }
+
+        .hamburger {
+            position: relative;
+
+            width: 20px;
+            height: 16px;
+        }
+
+        .hamburger span {
+            position: absolute;
+
+            left: 0;
+
+            width: 100%;
+            height: 2px;
+
+            border-radius: 999px;
+
+            background: white;
+
+            transition: .25s ease;
+        }
+
+        .hamburger span:nth-child(1) {
+            top: 0;
+        }
+
+        .hamburger span:nth-child(2) {
+            top: 7px;
+        }
+
+        .hamburger span:nth-child(3) {
+            top: 14px;
+        }
+
+        .mobile-menu-button.open
+        .hamburger span:nth-child(1) {
+            top: 7px;
+            transform: rotate(45deg);
+        }
+
+        .mobile-menu-button.open
+        .hamburger span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-button.open
+        .hamburger span:nth-child(3) {
+            top: 7px;
+            transform: rotate(-45deg);
+        }
+
+        .mobile-navigation {
+            display: none;
+
+            max-height: 0;
+            overflow: hidden;
+
+            opacity: 0;
+
+            border-top:
+                1px solid transparent;
+
+            transition:
+                max-height .35s ease,
+                opacity .25s ease;
+        }
+
+        .mobile-navigation.open {
+            max-height: 260px;
+            opacity: 1;
+
+            border-top-color:
+                rgba(255,255,255,.06);
+        }
+
+        .mobile-navigation-inner {
+            padding:
+                10px
+                16px
+                18px;
+        }
+
+        .mobile-link {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            min-height: 50px;
+
+            padding: 0 14px;
+
+            color: #d1d5db;
+
+            text-decoration: none;
+
+            border-radius: 13px;
+
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .mobile-link:hover {
+            background:
+                rgba(255,255,255,.05);
+
+            color: white;
+        }
+
+        .page-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        .hero {
+            width: 100%;
+            max-width: 1100px;
+
+            margin: auto;
+
+            padding:
+                165px
+                20px
+                110px;
+
+            text-align: center;
+        }
+
+        .status-pill {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 9px;
+
+            padding:
+                8px
+                14px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.09);
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            backdrop-filter:
+                blur(15px);
+
+            color: #d1d5db;
+
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background:
+                #34d399;
+
+            box-shadow:
+                0 0 12px
+                rgba(52,211,153,.7);
+        }
+
+        .hero-title {
+            margin:
+                28px
+                auto
+                24px;
+
+            max-width: 900px;
+
+            font-size:
+                clamp(
+                    42px,
+                    7vw,
+                    78px
+                );
+
+            line-height: 1.04;
+
+            letter-spacing: -2.5px;
+
+            font-weight: 700;
+        }
+
+        .gradient-text {
+            background:
+                linear-gradient(
+                    135deg,
+                    #60a5fa,
+                    #a78bfa,
+                    #34d399
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            color: transparent;
+
+            background-size: 200% auto;
+
+            animation:
+                gradientShift 5s linear infinite;
+        }
+
+        @keyframes gradientShift {
+
+            to {
+                background-position:
+                    200% center;
+            }
+        }
+
+        .hero-description {
+            max-width: 700px;
+
+            margin:
+                0 auto
+                38px;
+
+            color: #9ca3af;
+
+            font-size:
+                clamp(
+                    15px,
+                    2vw,
+                    18px
+                );
+
+            line-height: 1.8;
+        }
+
+        .hero-actions {
+            display: flex;
+
+            justify-content: center;
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 12px;
+        }
+
+        .secondary-btn {
+            min-height: 46px;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 22px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.10);
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 14px;
+            font-weight: 600;
+
+            transition:
+                background .25s ease,
+                border-color .25s ease,
+                transform .25s ease;
+        }
+
+        .secondary-btn:hover {
+            background:
+                rgba(255,255,255,.08);
+
+            border-color:
+                rgba(255,255,255,.18);
+
+            transform:
+                translateY(-2px);
+        }
+
+        .glass {
+            background:
+                rgba(255,255,255,.035);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            backdrop-filter:
+                blur(18px);
+
+            -webkit-backdrop-filter:
+                blur(18px);
+
+            transition:
+                transform .3s ease,
+                background .3s ease,
+                border-color .3s ease;
+        }
+
+        .glass:hover {
+            background:
+                rgba(255,255,255,.055);
+
+            border-color:
+                rgba(255,255,255,.14);
+
+            transform:
+                translateY(-5px);
+        }
+
+        .section {
+            position: relative;
+            z-index: 10;
+
+            width: 100%;
+            max-width: 1150px;
+
+            margin: auto;
+
+            padding:
+                0
+                20px
+                110px;
+        }
+
+        .feature-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0,1fr));
+
+            gap: 20px;
+        }
+
+        .feature-card {
+            padding: 30px;
+            border-radius: 26px;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 22px;
+
+            border-radius: 17px;
+
+            font-size: 24px;
+        }
+
+        .feature-title {
+            margin-bottom: 10px;
+
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .feature-description {
+            color: #9ca3af;
+
+            font-size: 14px;
+
+            line-height: 1.8;
+        }
+
+        .stats-card {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0,1fr));
+
+            gap: 20px;
+
+            padding: 35px;
+
+            border-radius: 26px;
+
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family:
+                'Space Grotesk',
+                sans-serif;
+
+            font-size:
+                clamp(28px,4vw,42px);
+
+            font-weight: 700;
+        }
+
+        .stat-label {
+            margin-top: 7px;
+
+            color: #9ca3af;
+
+            font-size: 13px;
+        }
+
+        .cta-section {
+            max-width: 850px;
+            text-align: center;
+        }
+
+        .cta-title {
+            margin-bottom: 18px;
+
+            font-size:
+                clamp(
+                    32px,
+                    5vw,
+                    50px
+                );
+
+            line-height: 1.1;
+        }
+
+        .cta-description {
+            max-width: 650px;
+
+            margin:
+                0 auto
+                30px;
+
+            color: #9ca3af;
+
+            font-size: 16px;
+
+            line-height: 1.8;
+        }
+
+        .site-footer {
+            position: relative;
+            z-index: 10;
+
+            padding:
+                35px
+                20px
+                max(
+                    35px,
+                    env(safe-area-inset-bottom)
+                );
+
+            border-top:
+                1px solid
+                rgba(255,255,255,.06);
+
+            text-align: center;
+
+            color: #6b7280;
+
+            font-size: 12px;
+        }
+
+        .fade-up {
+            opacity: 0;
+
+            transform:
+                translateY(30px);
+
+            transition:
+                opacity .7s ease,
+                transform .7s ease;
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+
+            transform:
+                translateY(0);
+        }
+
+        @media (max-width: 900px) {
+
+            .desktop-navigation {
+                display: none;
+            }
+
+            .mobile-menu-button {
+                display: flex;
+            }
+
+            .mobile-navigation {
+                display: block;
+            }
+
+            .hero {
+                padding-top: 145px;
+            }
+
+            .feature-grid {
+                grid-template-columns:
+                    repeat(2, minmax(0,1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            .nav-container {
+                min-height: 64px;
+
+                padding-top: 10px;
+                padding-bottom: 10px;
+            }
+
+            .brand-mark {
+                width: 39px;
+                height: 39px;
+
+                border-radius: 12px;
+            }
+
+            .brand-name {
+                font-size: 18px;
+            }
+
+            .hero {
+                padding:
+                    125px
+                    14px
+                    80px;
+            }
+
+            .status-pill {
+                max-width: 100%;
+
+                font-size: 11px;
+
+                padding:
+                    7px
+                    11px;
+            }
+
+            .hero-title {
+                letter-spacing: -1.5px;
+                margin-top: 22px;
+            }
+
+            .hero-description {
+                line-height: 1.7;
+                margin-bottom: 28px;
+            }
+
+            .hero-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .hero-actions a {
+                width: 100%;
+                max-width: 330px;
+            }
+
+            .section {
+                padding:
+                    0
+                    14px
+                    80px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .feature-card {
+                padding: 24px;
+                border-radius: 22px;
+            }
+
+            .stats-card {
+                grid-template-columns: 1fr;
+
+                gap: 28px;
+
+                padding:
+                    28px
+                    20px;
+
+                border-radius: 22px;
+            }
+
+            .cta-section {
+                padding-bottom: 90px;
+            }
+
+            .cta-description {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 380px) {
+
+            .brand-name {
+                font-size: 17px;
+            }
+
+            .mobile-menu-button {
+                width: 42px;
+                height: 42px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .fade-up {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        ::selection {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        :focus-visible {
+            outline:
+                2px solid #60a5fa;
+
+            outline-offset: 3px;
+        }
+
+    </style>
+
 </head>
-<body class="text-white min-h-screen relative">
 
-    <div class="mesh-bg grid-pattern"></div>
-    <div class="orb w-96 h-96 bg-blue-500 top-0 -left-20"></div>
-    <div class="orb w-72 h-72 bg-purple-500 top-1/3 right-0" style="animation-delay: -3s;"></div>
-    <div class="orb w-80 h-80 bg-emerald-500 bottom-0 left-1/3" style="animation-delay: -5s;"></div>
+<body>
 
-    <!-- Nav -->
-    <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/5">
-        <div class="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold heading-font">KF</div>
-                <span class="text-xl font-bold heading-font">KaziFile</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <a href="{% url 'login' %}" class="text-gray-300 hover:text-white transition font-medium">Login</a>
-                <a href="{% url 'signup' %}" class="glow-btn text-white px-6 py-2.5 rounded-full font-semibold text-sm">
+    <div
+        class="background-layer"
+        aria-hidden="true"
+    >
+
+        <div class="mesh-bg"></div>
+
+        <div class="grid-pattern"></div>
+
+        <div
+            class="orb w-96 h-96 bg-blue-500"
+            style="top:-100px;left:-100px;"
+        ></div>
+
+        <div
+            class="orb w-72 h-72 bg-purple-500"
+            style="top:32%;right:-80px;animation-delay:-3s;"
+        ></div>
+
+        <div
+            class="orb w-80 h-80 bg-emerald-500"
+            style="bottom:-120px;left:30%;animation-delay:-5s;"
+        ></div>
+
+    </div>
+
+    <nav
+        class="site-nav"
+        id="siteNav"
+        aria-label="Main navigation"
+    >
+
+        <div class="nav-container">
+
+            <a
+                href="{% url 'landing' %}"
+                class="brand"
+                aria-label="KaziFile home"
+            >
+
+                <div class="brand-mark">
+                    KF
+                </div>
+
+                <span class="brand-name">
+                    KaziFile
+                </span>
+
+            </a>
+
+            <div class="desktop-navigation">
+
+                <a
+                    href="{% url 'login' %}"
+                    class="nav-link"
+                >
+                    Login
+                </a>
+
+                <a
+                    href="{% url 'signup' %}"
+                    class="glow-btn"
+                >
                     Get Started
                 </a>
+
             </div>
+
+            <button
+                type="button"
+                id="mobileMenuButton"
+                class="mobile-menu-button"
+                aria-label="Open menu"
+                aria-expanded="false"
+                aria-controls="mobileNavigation"
+            >
+
+                <span class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+
+            </button>
+
         </div>
+
+        <div
+            id="mobileNavigation"
+            class="mobile-navigation"
+        >
+
+            <div class="mobile-navigation-inner">
+
+                <a
+                    href="{% url 'login' %}"
+                    class="mobile-link"
+                >
+                    <span>Login</span>
+                    <span>→</span>
+                </a>
+
+                <a
+                    href="{% url 'signup' %}"
+                    class="mobile-link"
+                >
+                    <span>Get Started</span>
+                    <span>→</span>
+                </a>
+
+            </div>
+
+        </div>
+
     </nav>
 
-    <!-- Hero -->
-    <section class="relative z-10 max-w-5xl mx-auto text-center px-6 pt-44 pb-32">
-        <div class="fade-up visible inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full text-sm text-gray-300 mb-8">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            Now live — encrypted document storage
-        </div>
-        <h1 class="fade-up visible text-6xl md:text-7xl font-bold heading-font leading-[1.1] mb-8">
-            Your credentials,<br>
-            <span class="gradient-text">always within reach.</span>
-        </h1>
-        <p class="fade-up visible text-lg text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-            Stop carrying paper copies to every interview. Upload your certificates, ID, and CV once — 
-            encrypted, organized, and ready to share in seconds via a secure link or QR code.
-        </p>
-        <div class="fade-up visible flex items-center justify-center gap-4">
-            <a href="{% url 'signup' %}" class="glow-btn text-white px-8 py-4 rounded-full text-lg font-semibold heading-font">
-                Create Free Account
-            </a>
-            <a href="{% url 'login' %}" class="glass text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/10 transition">
-                Sign In
-            </a>
-        </div>
-    </section>
+    <main class="page-content">
 
-    <!-- Feature grid -->
-    <section class="relative z-10 max-w-6xl mx-auto px-6 pb-32 grid md:grid-cols-3 gap-6">
-        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center text-2xl mb-6">🔐</div>
-            <h3 class="text-xl font-bold heading-font mb-3">Military-Grade Encryption</h3>
-            <p class="text-gray-400 leading-relaxed">Every file is encrypted the instant it's uploaded. Nobody — not even a server breach — can read your documents.</p>
-        </div>
-        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 flex items-center justify-center text-2xl mb-6">⚡</div>
-            <h3 class="text-xl font-bold heading-font mb-3">Instant QR Sharing</h3>
-            <p class="text-gray-400 leading-relaxed">Generate a secure, expiring link or scannable QR code — hand over your documents in seconds, anywhere.</p>
-        </div>
-        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center text-2xl mb-6">📊</div>
-            <h3 class="text-xl font-bold heading-font mb-3">Full Access Audit Log</h3>
-            <p class="text-gray-400 leading-relaxed">See exactly who viewed your documents and when. Total transparency, total control.</p>
-        </div>
-    </section>
+        <section class="hero">
 
-    <!-- Stats strip -->
-    <section class="relative z-10 max-w-5xl mx-auto px-6 pb-32">
-        <div class="fade-up glass rounded-3xl p-10 grid grid-cols-3 gap-6 text-center">
-            <div>
-                <div class="text-4xl font-bold gradient-text heading-font">256-bit</div>
-                <div class="text-gray-400 text-sm mt-2">Encryption Standard</div>
+            <div class="fade-up">
+
+                <div class="status-pill">
+
+                    <span class="status-dot"></span>
+
+                    <span>
+                        Your digital document workspace
+                    </span>
+
+                </div>
+
             </div>
-            <div>
-                <div class="text-4xl font-bold gradient-text heading-font">2FA</div>
-                <div class="text-gray-400 text-sm mt-2">Login Protection</div>
-            </div>
-            <div>
-                <div class="text-4xl font-bold gradient-text heading-font">24/7</div>
-                <div class="text-gray-400 text-sm mt-2">Document Access</div>
-            </div>
-        </div>
-    </section>
 
-    <!-- CTA -->
-    <section class="relative z-10 max-w-3xl mx-auto text-center px-6 pb-32">
-        <h2 class="fade-up text-4xl font-bold heading-font mb-6">Ready to leave paper behind?</h2>
-        <p class="fade-up text-gray-400 mb-10 text-lg">Join KaziFile and walk into your next interview fully prepared — digitally.</p>
-        <a href="{% url 'signup' %}" class="fade-up glow-btn inline-block text-white px-10 py-4 rounded-full text-lg font-semibold heading-font">
-            Get Started — It's Free
-        </a>
-    </section>
+            <h1 class="hero-title fade-up">
 
-    <footer class="relative z-10 border-t border-white/5 py-10 text-center text-gray-500 text-sm">
-        Built by Shadrack Machoni · KaziFile © 2026
+                Your important documents,
+
+                <br>
+
+                <span class="gradient-text">
+                    always within reach.
+                </span>
+
+            </h1>
+
+            <p class="hero-description fade-up">
+
+                Keep your certificates, identification,
+                CVs and other important documents organized
+                in one convenient digital workspace.
+                Access them when you need them and share
+                them through the tools your application provides.
+
+            </p>
+
+            <div class="hero-actions fade-up">
+
+                <a
+                    href="{% url 'signup' %}"
+                    class="glow-btn"
+                >
+                    Create Free Account
+                </a>
+
+                <a
+                    href="{% url 'login' %}"
+                    class="secondary-btn"
+                >
+                    Sign In
+                </a>
+
+            </div>
+
+        </section>
+
+        <section
+            class="section"
+            aria-labelledby="features-title"
+        >
+
+            <h2
+                id="features-title"
+                class="sr-only"
+            >
+                KaziFile features
+            </h2>
+
+            <div class="feature-grid">
+
+                <article
+                    class="glass feature-card fade-up"
+                >
+
+                    <div
+                        class="feature-icon"
+                        style="
+                            background:
+                            linear-gradient(
+                                135deg,
+                                rgba(59,130,246,.20),
+                                rgba(59,130,246,.04)
+                            );
+                            border:
+                            1px solid
+                            rgba(59,130,246,.20);
+                        "
+                    >
+                        📁
+                    </div>
+
+                    <h3 class="feature-title">
+                        Organized Documents
+                    </h3>
+
+                    <p class="feature-description">
+                        Keep important files together in one
+                        structured workspace instead of searching
+                        through different devices and folders.
+                    </p>
+
+                </article>
+
+                <article
+                    class="glass feature-card fade-up"
+                >
+
+                    <div
+                        class="feature-icon"
+                        style="
+                            background:
+                            linear-gradient(
+                                135deg,
+                                rgba(139,92,246,.20),
+                                rgba(139,92,246,.04)
+                            );
+                            border:
+                            1px solid
+                            rgba(139,92,246,.20);
+                        "
+                    >
+                        🔗
+                    </div>
+
+                    <h3 class="feature-title">
+                        Easy Sharing
+                    </h3>
+
+                    <p class="feature-description">
+                        Connect your documents to sharing workflows
+                        so you can provide the right file when it
+                        is needed.
+                    </p>
+
+                </article>
+
+                <article
+                    class="glass feature-card fade-up"
+                >
+
+                    <div
+                        class="feature-icon"
+                        style="
+                            background:
+                            linear-gradient(
+                                135deg,
+                                rgba(16,185,129,.20),
+                                rgba(16,185,129,.04)
+                            );
+                            border:
+                            1px solid
+                            rgba(16,185,129,.20);
+                        "
+                    >
+                        👁️
+                    </div>
+
+                    <h3 class="feature-title">
+                        Access Visibility
+                    </h3>
+
+                    <p class="feature-description">
+                        Use your application's access-history tools
+                        to keep track of document activity and
+                        sharing events.
+                    </p>
+
+                </article>
+
+            </div>
+
+        </section>
+
+        <section class="section">
+
+            <div class="glass stats-card fade-up">
+
+                <div>
+
+                    <div class="stat-value gradient-text">
+                        1
+                    </div>
+
+                    <div class="stat-label">
+                        Central Workspace
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-value gradient-text">
+                        24/7
+                    </div>
+
+                    <div class="stat-label">
+                        Access When Available
+                    </div>
+
+                </div>
+
+                <div>
+
+                    <div class="stat-value gradient-text">
+                        Easy
+                    </div>
+
+                    <div class="stat-label">
+                        Document Organization
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="section cta-section">
+
+            <h2 class="cta-title fade-up">
+                Ready to organize your documents?
+            </h2>
+
+            <p class="cta-description fade-up">
+
+                Create your KaziFile account and build your
+                personal document workspace.
+
+            </p>
+
+            <div class="fade-up">
+
+                <a
+                    href="{% url 'signup' %}"
+                    class="glow-btn"
+                >
+                    Get Started — It's Free
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="site-footer">
+
+        Built by Shadrack Machoni ·
+        KaziFile © 2026
+
     </footer>
+        <script>
 
-    <script>
-        // Scroll reveal animation
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const siteNav =
+                    document.getElementById(
+                        "siteNav"
+                    );
+
+                function updateNavbar() {
+
+                    if (!siteNav) {
+                        return;
+                    }
+
+                    if (window.scrollY > 25) {
+
+                        siteNav.classList.add(
+                            "scrolled"
+                        );
+
+                    } else {
+
+                        siteNav.classList.remove(
+                            "scrolled"
+                        );
+
+                    }
+
                 }
-            });
-        }, { threshold: 0.1 });
 
-        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+                updateNavbar();
+
+                window.addEventListener(
+                    "scroll",
+                    updateNavbar,
+                    {
+                        passive: true
+                    }
+                );
+
+                const menuButton =
+                    document.getElementById(
+                        "mobileMenuButton"
+                    );
+
+                const mobileNavigation =
+                    document.getElementById(
+                        "mobileNavigation"
+                    );
+
+                function openMenu() {
+
+                    if (
+                        !menuButton ||
+                        !mobileNavigation
+                    ) {
+                        return;
+                    }
+
+                    mobileNavigation.classList.add(
+                        "open"
+                    );
+
+                    menuButton.classList.add(
+                        "open"
+                    );
+
+                    menuButton.setAttribute(
+                        "aria-expanded",
+                        "true"
+                    );
+
+                    menuButton.setAttribute(
+                        "aria-label",
+                        "Close menu"
+                    );
+
+                }
+
+                function closeMenu() {
+
+                    if (
+                        !menuButton ||
+                        !mobileNavigation
+                    ) {
+                        return;
+                    }
+
+                    mobileNavigation.classList.remove(
+                        "open"
+                    );
+
+                    menuButton.classList.remove(
+                        "open"
+                    );
+
+                    menuButton.setAttribute(
+                        "aria-expanded",
+                        "false"
+                    );
+
+                    menuButton.setAttribute(
+                        "aria-label",
+                        "Open menu"
+                    );
+
+                }
+
+                if (
+                    menuButton &&
+                    mobileNavigation
+                ) {
+
+                    menuButton.addEventListener(
+                        "click",
+                        function () {
+
+                            const isOpen =
+                                mobileNavigation.classList.contains(
+                                    "open"
+                                );
+
+                            if (isOpen) {
+
+                                closeMenu();
+
+                            } else {
+
+                                openMenu();
+
+                            }
+
+                        }
+                    );
+
+                    mobileNavigation
+                        .querySelectorAll("a")
+                        .forEach(
+                            function (link) {
+
+                                link.addEventListener(
+                                    "click",
+                                    closeMenu
+                                );
+
+                            }
+                        );
+
+                    document.addEventListener(
+                        "click",
+                        function (event) {
+
+                            if (
+                                !mobileNavigation.contains(
+                                    event.target
+                                ) &&
+                                !menuButton.contains(
+                                    event.target
+                                )
+                            ) {
+
+                                closeMenu();
+
+                            }
+
+                        }
+                    );
+
+                    document.addEventListener(
+                        "keydown",
+                        function (event) {
+
+                            if (
+                                event.key === "Escape"
+                            ) {
+
+                                closeMenu();
+
+                            }
+
+                        }
+                    );
+
+                    window.addEventListener(
+                        "resize",
+                        function () {
+
+                            if (
+                                window.innerWidth > 900
+                            ) {
+
+                                closeMenu();
+
+                            }
+
+                        }
+                    );
+
+                }
+
+                const animatedElements =
+                    document.querySelectorAll(
+                        ".fade-up"
+                    );
+
+                if (
+                    "IntersectionObserver"
+                    in window
+                ) {
+
+                    const observer =
+                        new IntersectionObserver(
+                            function (
+                                entries,
+                                observerInstance
+                            ) {
+
+                                entries.forEach(
+                                    function (entry) {
+
+                                        if (
+                                            entry.isIntersecting
+                                        ) {
+
+                                            entry.target.classList.add(
+                                                "visible"
+                                            );
+
+                                            observerInstance.unobserve(
+                                                entry.target
+                                            );
+
+                                        }
+
+                                    }
+                                );
+
+                            },
+                            {
+                                threshold: 0.12,
+
+                                rootMargin:
+                                    "0px 0px -40px 0px"
+                            }
+                        );
+
+                    animatedElements.forEach(
+                        function (element) {
+
+                            observer.observe(
+                                element
+                            );
+
+                        }
+                    );
+
+                } else {
+
+                    animatedElements.forEach(
+                        function (element) {
+
+                            element.classList.add(
+                                "visible"
+                            );
+
+                        }
+                    );
+
+                }
+
+                const reducedMotion =
+                    window.matchMedia(
+                        "(prefers-reduced-motion: reduce)"
+                    );
+
+                if (
+                    reducedMotion.matches
+                ) {
+
+                    animatedElements.forEach(
+                        function (element) {
+
+                            element.classList.add(
+                                "visible"
+                            );
+
+                        }
+                    );
+
+                }
+
+                window.addEventListener(
+                    "orientationchange",
+                    function () {
+
+                        setTimeout(
+                            function () {
+
+                                if (
+                                    window.innerWidth > 900
+                                ) {
+
+                                    closeMenu();
+
+                                }
+
+                            },
+                            100
+                        );
+
+                    }
+                );
+
+            }
+
+        );
+
     </script>
 
 </body>
+
 </html>

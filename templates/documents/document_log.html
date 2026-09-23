@@ -1,103 +1,885 @@
 {% extends 'base.html' %}
+
 {% block content %}
+
 <style>
-    body { background: #0a0e1a; }
+    body {
+        background:
+            radial-gradient(circle at 10% 10%, rgba(59,130,246,.10), transparent 30%),
+            radial-gradient(circle at 90% 20%, rgba(139,92,246,.10), transparent 30%),
+            #070a12;
+    }
+
+    .history-page {
+        min-height: calc(100vh - 80px);
+        color: #fff;
+    }
 
     .glass {
-        background: rgba(255, 255, 255, 0.04);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255,255,255,.035);
+        border: 1px solid rgba(255,255,255,.08);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: blur(22px);
+        box-shadow: 0 20px 60px rgba(0,0,0,.18);
+    }
+
+    .glass-soft {
+        background: rgba(255,255,255,.025);
+        border: 1px solid rgba(255,255,255,.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .hero-glow {
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: .12;
+        pointer-events: none;
+    }
+
+    .glow-blue {
+        background: #3b82f6;
+        top: -100px;
+        left: -100px;
+    }
+
+    .glow-purple {
+        background: #8b5cf6;
+        right: -100px;
+        top: 100px;
     }
 
     .kenya-strip {
-        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
         height: 4px;
+        width: 90px;
         border-radius: 999px;
+        background:
+            linear-gradient(
+                90deg,
+                #000 0%,
+                #000 25%,
+                #bb0000 25%,
+                #bb0000 50%,
+                #fff 50%,
+                #fff 75%,
+                #006600 75%,
+                #006600 100%
+            );
+        box-shadow: 0 0 20px rgba(255,255,255,.08);
     }
 
-    .timeline-line {
+    .gradient-text {
+        background:
+            linear-gradient(
+                135deg,
+                #60a5fa,
+                #a78bfa,
+                #34d399
+            );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .document-icon {
+        width: 58px;
+        height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 18px;
+        background:
+            linear-gradient(
+                135deg,
+                rgba(59,130,246,.18),
+                rgba(139,92,246,.18)
+            );
+        border: 1px solid rgba(96,165,250,.18);
+        font-size: 25px;
+        box-shadow: 0 0 30px rgba(59,130,246,.08);
+    }
+
+    .stat-card {
+        position: relative;
+        overflow: hidden;
+        transition:
+            transform .3s ease,
+            border-color .3s ease,
+            background .3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(255,255,255,.14);
+        background: rgba(255,255,255,.055);
+    }
+
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 13px;
+    }
+
+    .timeline {
+        position: relative;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 58px;
+    }
+
+    .timeline-item::before {
+        content: "";
         position: absolute;
-        left: 19px;
-        top: 40px;
-        bottom: -8px;
-        width: 2px;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.02));
+        left: 20px;
+        top: 45px;
+        bottom: -28px;
+        width: 1px;
+        background:
+            linear-gradient(
+                to bottom,
+                rgba(255,255,255,.16),
+                rgba(255,255,255,.02)
+            );
     }
 
-    .timeline-item:last-child .timeline-line { display: none; }
-
-    .icon-dot {
-        transition: all 0.3s ease;
-    }
-    .timeline-item:hover .icon-dot {
-        transform: scale(1.15);
+    .timeline-item:last-child::before {
+        display: none;
     }
 
-    .fade-in {
-        animation: fadeIn 0.5s ease forwards;
-        opacity: 0;
-    }
-    @keyframes fadeIn {
-        to { opacity: 1; transform: translateX(0); }
-        from { transform: translateX(-10px); }
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition:
+            transform .3s ease,
+            box-shadow .3s ease;
     }
 
-    .badge-shared {
-        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));
-        border: 1px solid rgba(96,165,250,0.25);
+    .timeline-item:hover .timeline-dot {
+        transform: scale(1.08);
+    }
+
+    .shared {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(59,130,246,.18),
+                rgba(139,92,246,.18)
+            );
+        border: 1px solid rgba(96,165,250,.25);
         color: #93c5fd;
     }
-    .badge-viewed {
-        background: linear-gradient(135deg, rgba(187,0,0,0.12), rgba(0,102,0,0.12));
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #d1fae5;
+
+    .viewed {
+        background:
+            linear-gradient(
+                135deg,
+                rgba(16,185,129,.15),
+                rgba(59,130,246,.10)
+            );
+        border: 1px solid rgba(52,211,153,.20);
+        color: #6ee7b7;
+    }
+
+    .timeline-card {
+        transition:
+            transform .3s ease,
+            background .3s ease,
+            border-color .3s ease;
+    }
+
+    .timeline-card:hover {
+        transform: translateX(5px);
+        background: rgba(255,255,255,.055);
+        border-color: rgba(255,255,255,.13);
+    }
+
+    .action-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .02em;
+    }
+
+    .pulse-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #34d399;
+        box-shadow: 0 0 12px rgba(52,211,153,.8);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%,100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: .5;
+            transform: scale(.75);
+        }
+    }
+
+    .history-header {
+        animation: reveal .65s ease both;
+    }
+
+    .stat-card {
+        animation: reveal .7s ease both;
+    }
+
+    .stat-card:nth-child(2) {
+        animation-delay: .08s;
+    }
+
+    .stat-card:nth-child(3) {
+        animation-delay: .16s;
+    }
+
+    .timeline-item {
+        opacity: 0;
+        animation: timelineReveal .55s ease forwards;
+    }
+
+    .timeline-item:nth-child(1) { animation-delay: .05s; }
+    .timeline-item:nth-child(2) { animation-delay: .12s; }
+    .timeline-item:nth-child(3) { animation-delay: .19s; }
+    .timeline-item:nth-child(4) { animation-delay: .26s; }
+    .timeline-item:nth-child(5) { animation-delay: .33s; }
+    .timeline-item:nth-child(6) { animation-delay: .40s; }
+    .timeline-item:nth-child(7) { animation-delay: .47s; }
+    .timeline-item:nth-child(8) { animation-delay: .54s; }
+
+    @keyframes reveal {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes timelineReveal {
+        from {
+            opacity: 0;
+            transform: translateX(-12px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .empty-state {
+        border: 1px dashed rgba(255,255,255,.10);
+        background: rgba(255,255,255,.018);
+    }
+
+    .filter-button {
+        min-height: 38px;
+        padding: 0 14px;
+        border-radius: 999px;
+        color: #9ca3af;
+        background: rgba(255,255,255,.035);
+        border: 1px solid rgba(255,255,255,.07);
+        transition: .25s ease;
+        cursor: pointer;
+        font-size: 12px;
+    }
+
+    .filter-button:hover,
+    .filter-button.active {
+        color: white;
+        background: rgba(255,255,255,.09);
+        border-color: rgba(255,255,255,.15);
+    }
+
+    .search-box {
+        min-height: 42px;
+        width: 100%;
+        max-width: 260px;
+        padding: 0 15px 0 40px;
+        border-radius: 12px;
+        outline: none;
+        color: white;
+        background: rgba(255,255,255,.035);
+        border: 1px solid rgba(255,255,255,.08);
+        transition: .25s ease;
+    }
+
+    .search-box:focus {
+        border-color: rgba(96,165,250,.45);
+        background: rgba(255,255,255,.055);
+        box-shadow: 0 0 0 3px rgba(59,130,246,.08);
+    }
+
+    @media (max-width: 640px) {
+
+        .timeline-item {
+            padding-left: 48px;
+        }
+
+        .timeline-item::before {
+            left: 16px;
+        }
+
+        .timeline-dot {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            font-size: 14px;
+        }
+
+        .timeline-card:hover {
+            transform: none;
+        }
+
+        .search-box {
+            max-width: none;
+        }
     }
 </style>
 
-<div class="max-w-3xl mx-auto px-4 py-10 text-white">
+<div class="history-page relative overflow-hidden">
 
-    <div class="kenya-strip mb-8 w-24"></div>
+    <div class="hero-glow glow-blue"></div>
+    <div class="hero-glow glow-purple"></div>
 
-    <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-6 transition">
-        ← Back to Dashboard
-    </a>
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
 
-    <div class="glass rounded-3xl p-8">
-        <div class="flex items-center justify-between mb-1">
-            <h2 class="text-3xl font-bold" style="font-family:'Space Grotesk',sans-serif;">Access History</h2>
-            <span class="text-xs px-3 py-1 rounded-full glass text-gray-400">{{ logs|length }} event{{ logs|length|pluralize }}</span>
-        </div>
-        <p class="text-gray-400 mb-10">Full activity trail for <span class="text-white font-medium">{{ document.title }}</span></p>
+        <div class="history-header">
 
-        {% if logs %}
-        <div class="space-y-6">
-            {% for log in logs %}
-            <div class="timeline-item relative pl-14 fade-in" style=`"animation-delay: {{ forloop.counter0|add:'0' }}00ms">
-                <div class="timeline-line"></div>
-                <div class="icon-dot absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center text-lg
-                    {% if log.action == 'share_created' %}badge-shared{% else %}badge-viewed{% endif %}">
-                    {% if log.action == 'share_created' %}🔗{% else %}👁️{% endif %}
+            <div class="flex items-center justify-between gap-4 mb-8">
+
+                <a
+                    href="{% url 'dashboard' %}"
+                    class="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm transition"
+                >
+                    <span class="text-lg">←</span>
+                    <span>Dashboard</span>
+                </a>
+
+                <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <span class="pulse-dot"></span>
+                    Activity tracking
                 </div>
-                <div class="glass rounded-2xl p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                    <div>
-                        <span class="font-semibold text-white">{{ log.get_action_display }}</span>
-                        {% if log.ip_address %}
-                            <div class="text-xs text-gray-500 mt-1 font-mono">IP: {{ log.ip_address }}</div>
-                        {% endif %}
-                    </div>
-                    <span class="text-sm text-gray-400 whitespace-nowrap">{{ log.timestamp|date:"M d, Y · H:i" }}</span>
-                </div>
+
             </div>
-            {% endfor %}
+
+            <div class="kenya-strip mb-6"></div>
+
+            <div class="glass rounded-3xl p-5 sm:p-7 mb-6">
+
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+
+                    <div class="flex items-center gap-4 min-w-0">
+
+                        <div class="document-icon shrink-0">
+                            📄
+                        </div>
+
+                        <div class="min-w-0">
+
+                            <div class="flex items-center gap-2 mb-1">
+
+                                <span class="text-xs uppercase tracking-widest text-gray-500">
+                                    Document Activity
+                                </span>
+
+                                <span class="w-1 h-1 rounded-full bg-gray-600"></span>
+
+                                <span class="text-xs text-gray-500">
+                                    Live record
+                                </span>
+
+                            </div>
+
+                            <h1 class="text-2xl sm:text-3xl font-bold truncate gradient-text">
+                                {{ document.title }}
+                            </h1>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                Complete access and sharing activity
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div class="flex items-center gap-2">
+
+                        <span class="glass px-3 py-2 rounded-xl text-xs text-gray-400">
+                            {{ logs|length }}
+                            event{{ logs|length|pluralize }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-        {% else %}
-        <div class="text-center py-16">
-            <div class="text-5xl mb-4">🕒</div>
-            <p class="text-gray-300 text-lg mb-1">No activity recorded yet</p>
-            <p class="text-gray-500 text-sm">Once this document is shared or viewed, you'll see it here.</p>
+
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+
+            <div class="glass stat-card rounded-2xl p-5">
+
+                <div class="flex items-center justify-between mb-4">
+
+                    <div class="stat-icon bg-blue-500/10 text-blue-400">
+                        👁
+                    </div>
+
+                    <span class="text-xs text-gray-600">
+                        Activity
+                    </span>
+
+                </div>
+
+                <div class="text-3xl font-bold text-white">
+                    {{ logs|length }}
+                </div>
+
+                <div class="text-xs text-gray-500 mt-1">
+                    Total recorded events
+                </div>
+
+            </div>
+
+
+            <div class="glass stat-card rounded-2xl p-5">
+
+                <div class="flex items-center justify-between mb-4">
+
+                    <div class="stat-icon bg-purple-500/10 text-purple-400">
+                        🔗
+                    </div>
+
+                    <span class="text-xs text-gray-600">
+                        Sharing
+                    </span>
+
+                </div>
+
+                <div
+                    id="shareCount"
+                    class="text-3xl font-bold text-white"
+                >
+                    0
+                </div>
+
+                <div class="text-xs text-gray-500 mt-1">
+                    Sharing events
+                </div>
+
+            </div>
+
+
+            <div class="glass stat-card rounded-2xl p-5">
+
+                <div class="flex items-center justify-between mb-4">
+
+                    <div class="stat-icon bg-emerald-500/10 text-emerald-400">
+                        ⚡
+                    </div>
+
+                    <span class="text-xs text-gray-600">
+                        Status
+                    </span>
+
+                </div>
+
+                <div class="text-lg font-bold text-emerald-400">
+                    Active
+                </div>
+
+                <div class="text-xs text-gray-500 mt-1">
+                    History is being recorded
+                </div>
+
+            </div>
+
         </div>
-        {% endif %}
+
+
+        <div class="glass rounded-3xl overflow-hidden">
+
+            <div class="p-5 sm:p-7 border-b border-white/5">
+
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+                    <div>
+
+                        <h2 class="text-xl font-bold text-white">
+                            Activity Timeline
+                        </h2>
+
+                        <p class="text-sm text-gray-500 mt-1">
+                            Every recorded interaction with this document.
+                        </p>
+
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+
+                        <div class="relative">
+
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                                ⌕
+                            </span>
+
+                            <input
+                                id="historySearch"
+                                type="search"
+                                class="search-box"
+                                placeholder="Search activity..."
+                                autocomplete="off"
+                            >
+
+                        </div>
+
+                        <div class="flex gap-2">
+
+                            <button
+                                type="button"
+                                class="filter-button active"
+                                data-filter="all"
+                            >
+                                All
+                            </button>
+
+                            <button
+                                type="button"
+                                class="filter-button"
+                                data-filter="share_created"
+                            >
+                                Shared
+                            </button>
+
+                            <button
+                                type="button"
+                                class="filter-button"
+                                data-filter="viewed"
+                            >
+                                Viewed
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="p-5 sm:p-7">
+
+                {% if logs %}
+
+                <div
+                    id="timeline"
+                    class="timeline space-y-7"
+                >
+
+                    {% for log in logs %}
+
+                    <div
+                        class="timeline-item"
+                        data-action="{{ log.action }}"
+                        data-search="{{ log.get_action_display|lower }} {{ log.ip_address|default:''|lower }} {{ log.timestamp|date:'M d Y H:i'|lower }}"
+                    >
+
+                        <div
+                            class="timeline-dot {% if log.action == 'share_created' %}shared{% else %}viewed{% endif %}"
+                        >
+
+                            {% if log.action == 'share_created' %}
+                                🔗
+                            {% else %}
+                                👁️
+                            {% endif %}
+
+                        </div>
+
+
+                        <div class="glass-soft timeline-card rounded-2xl p-4 sm:p-5">
+
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
+                                <div class="min-w-0">
+
+                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+
+                                        <span class="action-badge {% if log.action == 'share_created' %}shared{% else %}viewed{% endif %}">
+
+                                            {% if log.action == 'share_created' %}
+                                                <span>🔗</span>
+                                            {% else %}
+                                                <span>👁</span>
+                                            {% endif %}
+
+                                            {{ log.get_action_display }}
+
+                                        </span>
+
+                                    </div>
+
+
+                                    <div class="text-sm text-gray-300">
+
+                                        {% if log.action == 'share_created' %}
+                                            This document was shared.
+                                        {% else %}
+                                            This document was accessed or viewed.
+                                        {% endif %}
+
+                                    </div>
+
+
+                                    {% if log.ip_address %}
+
+                                    <div class="flex items-center gap-2 mt-3">
+
+                                        <span class="text-xs text-gray-600">
+                                            Network
+                                        </span>
+
+                                        <span class="text-xs text-gray-500 font-mono">
+                                            {{ log.ip_address }}
+                                        </span>
+
+                                    </div>
+
+                                    {% endif %}
+
+                                </div>
+
+
+                                <div class="sm:text-right shrink-0">
+
+                                    <div class="text-sm text-gray-300">
+                                        {{ log.timestamp|date:"M d, Y" }}
+                                    </div>
+
+                                    <div class="text-xs text-gray-600 mt-1">
+                                        {{ log.timestamp|date:"H:i" }}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <div
+                    id="noSearchResults"
+                    class="hidden text-center py-12"
+                >
+
+                    <div class="text-4xl mb-3">
+                        🔎
+                    </div>
+
+                    <p class="text-gray-300">
+                        No matching activity
+                    </p>
+
+                    <p class="text-gray-600 text-sm mt-1">
+                        Try another search or filter.
+                    </p>
+
+                </div>
+
+                {% else %}
+
+                <div class="empty-state rounded-3xl text-center py-20 px-6">
+
+                    <div class="text-6xl mb-5">
+                        🕒
+                    </div>
+
+                    <h3 class="text-xl font-semibold text-gray-200">
+                        No activity yet
+                    </h3>
+
+                    <p class="text-gray-500 text-sm max-w-md mx-auto mt-2 leading-6">
+                        Once this document is shared or viewed,
+                        the activity will appear here automatically.
+                    </p>
+
+                    <a
+                        href="{% url 'dashboard' %}"
+                        class="inline-flex items-center gap-2 mt-6 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-sm text-gray-300 hover:text-white hover:bg-white/10 transition"
+                    >
+                        Return to Dashboard
+                        <span>→</span>
+                    </a>
+
+                </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
     </div>
+
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const items = Array.from(
+        document.querySelectorAll(".timeline-item")
+    );
+
+    const searchInput =
+        document.getElementById("historySearch");
+
+    const filterButtons =
+        document.querySelectorAll(".filter-button");
+
+    const noResults =
+        document.getElementById("noSearchResults");
+
+    const shareCount =
+        document.getElementById("shareCount");
+
+    let currentFilter = "all";
+
+    const sharingEvents = items.filter(function (item) {
+        return item.dataset.action === "share_created";
+    });
+
+    if (shareCount) {
+        shareCount.textContent = sharingEvents.length;
+    }
+
+    function applyFilters() {
+
+        const searchTerm =
+            searchInput
+                ? searchInput.value
+                    .trim()
+                    .toLowerCase()
+                : "";
+
+        let visibleItems = 0;
+
+        items.forEach(function (item) {
+
+            const action =
+                item.dataset.action || "";
+
+            const searchable =
+                item.dataset.search || "";
+
+            const matchesFilter =
+                currentFilter === "all" ||
+                action === currentFilter;
+
+            const matchesSearch =
+                !searchTerm ||
+                searchable.includes(searchTerm);
+
+            const shouldShow =
+                matchesFilter &&
+                matchesSearch;
+
+            if (shouldShow) {
+
+                item.style.display = "";
+
+                visibleItems++;
+
+            } else {
+
+                item.style.display = "none";
+
+            }
+
+        });
+
+        if (noResults) {
+
+            if (visibleItems === 0) {
+                noResults.classList.remove("hidden");
+            } else {
+                noResults.classList.add("hidden");
+            }
+
+        }
+
+    }
+
+    filterButtons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            function () {
+
+                filterButtons.forEach(
+                    function (item) {
+                        item.classList.remove("active");
+                    }
+                );
+
+                button.classList.add("active");
+
+                currentFilter =
+                    button.dataset.filter || "all";
+
+                applyFilters();
+
+            }
+        );
+
+    });
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            applyFilters
+        );
+
+    }
+
+    applyFilters();
+
+});
+</script>
+
 {% endblock %}
