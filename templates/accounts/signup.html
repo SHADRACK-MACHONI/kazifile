@@ -1,24 +1,208 @@
 {% extends 'base.html' %}
+{% block title %}Sign Up{% endblock %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Create your account</h2>
-    <form method="post" class="space-y-4">
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-blue-50">
+  <div class="w-full max-w-md animate-fade-up">
+    <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100">
+
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-800">Create your account</h2>
+        <p class="text-sm text-gray-500 mt-1">Takes less than a minute</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 animate-shake">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate autocomplete="on" id="signup-form" class="space-y-5">
         {% csrf_token %}
+
         {% for field in form %}
-            <div>
-                <label class="block text-sm font-medium text-gray-600 mb-1">{{ field.label }}</label>
+          <div class="relative field-group" data-field="{{ field.html_name }}">
+
+            {% if field.field.widget.input_type == 'checkbox' %}
+              {# Checkbox fields (e.g. "agree to terms") get their own layout, not floating label #}
+              <label class="flex items-start gap-2 text-sm text-gray-600">
                 {{ field }}
-                {% if field.errors %}
-                    <p class="text-red-500 text-sm mt-1">{{ field.errors|striptags }}</p>
-                {% endif %}
-            </div>
+                <span>{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+              </label>
+
+            {% else %}
+              <input type="{{ field.field.widget.input_type|default:'text' }}"
+                     name="{{ field.html_name }}"
+                     id="{{ field.id_for_label }}"
+                     {% if field.value %}value="{{ field.value }}"{% endif %}
+                     placeholder="{{ field.label }}"
+                     {% if field.field.required %}required{% endif %}
+                     class="peer field-input w-full px-3 pt-5 pb-2 border border-gray-300 rounded-lg text-gray-800 placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                     data-role="{% if 'password1' in field.html_name or field.html_name == 'password' %}password-main{% elif 'password2' in field.html_name or 'confirm' in field.html_name %}password-confirm{% endif %}">
+
+              <label for="{{ field.id_for_label }}"
+                     class="absolute left-3 top-3.5 text-gray-400 text-sm transition-all duration-200 pointer-events-none
+                            peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
+                            peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-blue-600
+                            [&:not(:placeholder-shown)]:top-1.5 [&:not(:placeholder-shown)]:text-xs">
+                {{ field.label }}{% if field.field.required %} *{% endif %}
+              </label>
+
+              {# Password toggle, auto-applied to any password-type field #}
+              {% if field.field.widget.input_type == 'password' %}
+                <button type="button" class="toggle-password absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 text-xs font-medium" data-target="{{ field.id_for_label }}">
+                  SHOW
+                </button>
+              {% endif %}
+
+              <span class="valid-icon absolute right-3 top-3.5 hidden text-green-500 text-sm">✓</span>
+            {% endif %}
+
+            {# Password strength meter, only injected under the primary password field #}
+            {% if 'password1' in field.html_name or field.html_name == 'password' %}
+              <div id="strength-meter" class="hidden mt-2">
+                <div class="flex gap-1">
+                  <div class="strength-bar h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+                  <div class="strength-bar h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+                  <div class="strength-bar h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+                  <div class="strength-bar h-1 flex-1 rounded-full bg-gray-200 transition-colors"></div>
+                </div>
+                <p id="strength-label" class="text-xs text-gray-400 mt-1">Password strength</p>
+              </div>
+            {% endif %}
+
+            {# Live "passwords match" feedback under the confirm field #}
+            {% if 'password2' in field.html_name or 'confirm' in field.html_name %}
+              <p id="match-feedback" class="text-xs mt-1 hidden"></p>
+            {% endif %}
+
+            {% if field.help_text %}
+              <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+            {% endif %}
+
+            <p class="field-error text-xs text-red-600 mt-1 {% if not field.errors %}hidden{% endif %}">
+              {{ field.errors|striptags }}
+            </p>
+          </div>
         {% endfor %}
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-            Sign Up
+
+        <button type="submit" id="submit-btn"
+                class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+          <span id="btn-text">Sign Up</span>
+          <svg id="btn-spinner" class="hidden animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
         </button>
-    </form>
-    <p class="text-sm text-gray-500 mt-4">Already have an account? 
-        <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Login</a>
-    </p>
+      </form>
+
+      <p class="text-sm text-gray-500 mt-6 text-center">
+        Already have an account?
+        <a href="{% url 'login' %}" class="text-blue-600 hover:underline font-medium">Login</a>
+      </p>
+    </div>
+  </div>
 </div>
+
+<style>
+@keyframes fade-up { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+.animate-fade-up { animation: fade-up 0.5s ease-out; }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+.animate-shake { animation: shake 0.35s ease-in-out; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('signup-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = document.getElementById('btn-text');
+  const btnSpinner = document.getElementById('btn-spinner');
+
+  // Password show/hide toggle, auto-wired to every password field
+  document.querySelectorAll('.toggle-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const input = document.getElementById(btn.dataset.target);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? 'HIDE' : 'SHOW';
+    });
+  });
+
+  // Generic live validation for text/email fields
+  form.querySelectorAll('.field-input').forEach(function (input) {
+    input.addEventListener('input', function () {
+      const group = input.closest('.field-group');
+      const validIcon = group.querySelector('.valid-icon');
+      const errorEl = group.querySelector('.field-error');
+      const isValid = input.checkValidity() && input.value.trim() !== '';
+      input.classList.toggle('border-red-400', !isValid && input.value !== '');
+      input.classList.toggle('border-green-400', isValid);
+      if (validIcon) validIcon.classList.toggle('hidden', !isValid);
+      if (isValid && errorEl) errorEl.classList.add('hidden');
+    });
+  });
+
+  // Password strength meter
+  const mainPassword = form.querySelector('[data-role="password-main"]');
+  const confirmPassword = form.querySelector('[data-role="password-confirm"]');
+  const strengthMeter = document.getElementById('strength-meter');
+  const strengthBars = document.querySelectorAll('.strength-bar');
+  const strengthLabel = document.getElementById('strength-label');
+  const matchFeedback = document.getElementById('match-feedback');
+
+  function scorePassword(pw) {
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    return score;
+  }
+
+  function checkMatch() {
+    if (!confirmPassword || !matchFeedback) return;
+    if (!confirmPassword.value) { matchFeedback.classList.add('hidden'); return; }
+    matchFeedback.classList.remove('hidden');
+    if (mainPassword.value === confirmPassword.value) {
+      matchFeedback.textContent = 'Passwords match';
+      matchFeedback.className = 'text-xs mt-1 text-green-600';
+    } else {
+      matchFeedback.textContent = 'Passwords do not match';
+      matchFeedback.className = 'text-xs mt-1 text-red-500';
+    }
+  }
+
+  if (mainPassword) {
+    mainPassword.addEventListener('input', function () {
+      const pw = mainPassword.value;
+      if (!pw) { strengthMeter.classList.add('hidden'); return; }
+      strengthMeter.classList.remove('hidden');
+      const score = scorePassword(pw);
+      const colors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-green-500'];
+      const labels = ['Weak', 'Fair', 'Good', 'Strong'];
+      strengthBars.forEach(function (bar, i) {
+        bar.className = 'strength-bar h-1 flex-1 rounded-full transition-colors ' + (i < score ? colors[score - 1] : 'bg-gray-200');
+      });
+      strengthLabel.textContent = labels[Math.max(score - 1, 0)];
+      strengthLabel.className = 'text-xs mt-1 ' + (score <= 1 ? 'text-red-500' : score <= 3 ? 'text-yellow-600' : 'text-green-600');
+      checkMatch();
+    });
+  }
+  if (confirmPassword) confirmPassword.addEventListener('input', checkMatch);
+
+  form.addEventListener('submit', function (e) {
+    if (mainPassword && confirmPassword && mainPassword.value !== confirmPassword.value) {
+      e.preventDefault();
+      matchFeedback.textContent = 'Passwords do not match';
+      matchFeedback.className = 'text-xs mt-1 text-red-500';
+      matchFeedback.classList.remove('hidden');
+      return;
+    }
+    if (submitBtn.disabled) { e.preventDefault(); return; }
+    submitBtn.disabled = true;
+    btnText.textContent = 'Creating account...';
+    btnSpinner.classList.remove('hidden');
+  });
+});
+</script>
 {% endblock %}

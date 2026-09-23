@@ -1,21 +1,178 @@
 {% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block title %}Login{% endblock %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Welcome back</h2>
-    <form method="post" class="space-y-4">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                <label class="block text-sm font-medium text-gray-600 mb-1">{{ field.label }}</label>
-                {{ field }}
-            </div>
+<div class="min-h-[80vh] flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-blue-50">
+  <div class="w-full max-w-md animate-fade-up">
+    <div class="bg-white/90 backdrop-blur-sm p-8 rounded-2xl shadow-xl border border-gray-100">
+
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-800">Welcome back</h2>
+        <p class="text-sm text-gray-500 mt-1">Sign in to continue to your account</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 animate-shake">
+          {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="mb-4 p-3 rounded-lg text-sm border
+                      {% if message.tags == 'error' %} bg-red-50 border-red-200 text-red-700
+                      {% elif message.tags == 'success' %} bg-green-50 border-green-200 text-green-700
+                      {% else %} bg-blue-50 border-blue-200 text-blue-700 {% endif %}">
+            {{ message }}
+          </div>
         {% endfor %}
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-            Login
+      {% endif %}
+
+      <form method="post" novalidate autocomplete="on" id="login-form" class="space-y-5">
+        {% csrf_token %}
+
+        {% for field in form %}
+          <div class="relative field-group" data-field="{{ field.html_name }}">
+
+            {# Floating label input #}
+            {% render_field field
+                class="peer w-full px-3 pt-5 pb-2 border border-gray-300 rounded-lg text-gray-800 placeholder-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder=field.label
+                autocomplete="off"
+                data-autoval="true" %}
+
+            <label for="{{ field.id_for_label }}"
+                   class="absolute left-3 top-3.5 text-gray-400 text-sm transition-all duration-200 pointer-events-none
+                          peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400
+                          peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-blue-600
+                          [&:not(:placeholder-shown)]:top-1.5 [&:not(:placeholder-shown)]:text-xs">
+              {{ field.label }}{% if field.field.required %} *{% endif %}
+            </label>
+
+            {# Password visibility toggle — auto-applies to any password field #}
+            {% if field.field.widget.input_type == 'password' %}
+              <button type="button"
+                      class="toggle-password absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 text-xs font-medium"
+                      data-target="{{ field.id_for_label }}">
+                SHOW
+              </button>
+            {% endif %}
+
+            {# Live validation icon slot #}
+            <span class="valid-icon absolute right-3 top-3.5 hidden text-green-500 text-sm">✓</span>
+
+            {% if field.help_text %}
+              <p class="text-xs text-gray-400 mt-1">{{ field.help_text }}</p>
+            {% endif %}
+
+            <p class="field-error text-xs text-red-600 mt-1 {% if not field.errors %}hidden{% endif %}">
+              {% for error in field.errors %}{{ error }}{% endfor %}
+            </p>
+          </div>
+        {% endfor %}
+
+        <div class="flex items-center justify-between text-sm">
+          {% if form.remember_me %}
+            <label class="flex items-center gap-2 text-gray-600">
+              {{ form.remember_me }} Remember me
+            </label>
+          {% else %}<span></span>{% endif %}
+
+          {% url 'password_reset' as reset_url %}
+          {% if reset_url %}
+            <a href="{{ reset_url }}" class="text-blue-600 hover:underline">Forgot password?</a>
+          {% endif %}
+        </div>
+
+        {% if request.GET.next %}
+          <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+
+        <button type="submit" id="submit-btn"
+                class="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition-all duration-200 shadow-sm flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+          <span id="btn-text">Login</span>
+          <svg id="btn-spinner" class="hidden animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
         </button>
-    </form>
-    <p class="text-sm text-gray-500 mt-4">New here? 
-        <a href="{% url 'signup' %}" class="text-blue-600 hover:underline">Create an account</a>
-    </p>
+      </form>
+
+      {% if social_backends %}
+        <div class="my-6 flex items-center gap-3">
+          <div class="flex-1 h-px bg-gray-200"></div>
+          <span class="text-xs text-gray-400">OR</span>
+          <div class="flex-1 h-px bg-gray-200"></div>
+        </div>
+        <div class="space-y-2">
+          {% for backend in social_backends %}
+            <a href="{% url 'social:begin' backend.name %}"
+               class="w-full flex items-center justify-center gap-2 border border-gray-300 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition">
+              Continue with {{ backend.label }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <p class="text-sm text-gray-500 mt-6 text-center">
+        New here?
+        <a href="{% url 'signup' %}" class="text-blue-600 hover:underline font-medium">Create an account</a>
+      </p>
+    </div>
+  </div>
 </div>
+
+<style>
+@keyframes fade-up { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+.animate-fade-up { animation: fade-up 0.5s ease-out; }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+.animate-shake { animation: shake 0.35s ease-in-out; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('login-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const btnText = document.getElementById('btn-text');
+  const btnSpinner = document.getElementById('btn-spinner');
+
+  // Auto-focus first empty field
+  const firstInput = form.querySelector('input:not([type=hidden])');
+  if (firstInput && !firstInput.value) firstInput.focus();
+
+  // Password show/hide toggle (auto-wired to every password field)
+  document.querySelectorAll('.toggle-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      const input = document.getElementById(btn.dataset.target);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? 'HIDE' : 'SHOW';
+    });
+  });
+
+  // Live per-field validation feedback (HTML5 constraint API, no server round-trip)
+  form.querySelectorAll('[data-autoval="true"]').forEach(function (input) {
+    input.addEventListener('input', function () {
+      const group = input.closest('.field-group');
+      const errorEl = group.querySelector('.field-error');
+      const validIcon = group.querySelector('.valid-icon');
+      const isValid = input.checkValidity() && input.value.trim() !== '';
+
+      input.classList.toggle('border-red-400', !isValid && input.value !== '');
+      input.classList.toggle('border-green-400', isValid);
+      validIcon.classList.toggle('hidden', !isValid);
+      if (isValid) errorEl.classList.add('hidden');
+    });
+  });
+
+  // Loading state on submit, guards against double-submits
+  form.addEventListener('submit', function (e) {
+    if (submitBtn.disabled) { e.preventDefault(); return; }
+    submitBtn.disabled = true;
+    btnText.textContent = 'Signing in...';
+    btnSpinner.classList.remove('hidden');
+  });
+});
+</script>
 {% endblock %}
