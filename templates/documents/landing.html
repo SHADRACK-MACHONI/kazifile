@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KaziFile — Your Documents, Always Ready</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+    * { font-family: 'Inter', sans-serif; }
+    h1, h2, h3, .heading-font { font-family: 'Space Grotesk', sans-serif; }
+
+    body {
+        background: #0a0e1a;
+        overflow-x: hidden;
+    }
+
+    /* Animated gradient mesh background */
+    .mesh-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.25), transparent 40%),
+            radial-gradient(circle at 80% 30%, rgba(139, 92, 246, 0.25), transparent 40%),
+            radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.15), transparent 40%);
+        animation: meshMove 15s ease-in-out infinite alternate;
+    }
+
+    @keyframes meshMove {
+        0% { transform: scale(1) translate(0, 0); }
+        100% { transform: scale(1.1) translate(-30px, 30px); }
+    }
+
+    /* Floating orbs */
+    .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.5;
+        animation: float 8s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) translateX(0px); }
+        50% { transform: translateY(-30px) translateX(20px); }
+    }
+
+    /* Glassmorphism card */
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass:hover {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transform: translateY(-6px);
+    }
+
+    /* Gradient text */
+    .gradient-text {
+        background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        background-size: 200% auto;
+        animation: shine 4s linear infinite;
+    }
+
+    @keyframes shine {
+        to { background-position: 200% center; }
+    }
+
+    /* Glow button */
+    .glow-btn {
+        position: relative;
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .glow-btn:hover {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.8), 0 0 60px rgba(139, 92, 246, 0.5);
+        transform: translateY(-2px) scale(1.02);
+    }
+
+    /* Fade-in-up on scroll */
+    .fade-up {
+        opacity: 0;
+        transform: translateY(40px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-up.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Grid pattern overlay */
+    .grid-pattern {
+        background-image:
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+
+    /* Nav blur on scroll */
+    .nav-blur {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        background: rgba(10, 14, 26, 0.7);
+    }
+
+    ::selection { background: #8b5cf6; color: white; }
+</style>
+</head>
+<body class="text-white min-h-screen relative">
+
+    <div class="mesh-bg grid-pattern"></div>
+    <div class="orb w-96 h-96 bg-blue-500 top-0 -left-20"></div>
+    <div class="orb w-72 h-72 bg-purple-500 top-1/3 right-0" style="animation-delay: -3s;"></div>
+    <div class="orb w-80 h-80 bg-emerald-500 bottom-0 left-1/3" style="animation-delay: -5s;"></div>
+
+    <!-- Nav -->
+    <nav class="fixed top-0 w-full z-50 nav-blur border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-8 py-5 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold heading-font">KF</div>
+                <span class="text-xl font-bold heading-font">KaziFile</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="{% url 'login' %}" class="text-gray-300 hover:text-white transition font-medium">Login</a>
+                <a href="{% url 'signup' %}" class="glow-btn text-white px-6 py-2.5 rounded-full font-semibold text-sm">
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="relative z-10 max-w-5xl mx-auto text-center px-6 pt-44 pb-32">
+        <div class="fade-up visible inline-flex items-center gap-2 glass px-4 py-1.5 rounded-full text-sm text-gray-300 mb-8">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Now live — encrypted document storage
+        </div>
+        <h1 class="fade-up visible text-6xl md:text-7xl font-bold heading-font leading-[1.1] mb-8">
+            Your credentials,<br>
+            <span class="gradient-text">always within reach.</span>
+        </h1>
+        <p class="fade-up visible text-lg text-gray-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+            Stop carrying paper copies to every interview. Upload your certificates, ID, and CV once — 
+            encrypted, organized, and ready to share in seconds via a secure link or QR code.
+        </p>
+        <div class="fade-up visible flex items-center justify-center gap-4">
+            <a href="{% url 'signup' %}" class="glow-btn text-white px-8 py-4 rounded-full text-lg font-semibold heading-font">
+                Create Free Account
+            </a>
+            <a href="{% url 'login' %}" class="glass text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-white/10 transition">
+                Sign In
+            </a>
+        </div>
+    </section>
+
+    <!-- Feature grid -->
+    <section class="relative z-10 max-w-6xl mx-auto px-6 pb-32 grid md:grid-cols-3 gap-6">
+        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 border border-blue-500/20 flex items-center justify-center text-2xl mb-6">🔐</div>
+            <h3 class="text-xl font-bold heading-font mb-3">Military-Grade Encryption</h3>
+            <p class="text-gray-400 leading-relaxed">Every file is encrypted the instant it's uploaded. Nobody — not even a server breach — can read your documents.</p>
+        </div>
+        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/20 flex items-center justify-center text-2xl mb-6">⚡</div>
+            <h3 class="text-xl font-bold heading-font mb-3">Instant QR Sharing</h3>
+            <p class="text-gray-400 leading-relaxed">Generate a secure, expiring link or scannable QR code — hand over your documents in seconds, anywhere.</p>
+        </div>
+        <div class="fade-up glass p-8 rounded-3xl transition-all duration-300">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/20 flex items-center justify-center text-2xl mb-6">📊</div>
+            <h3 class="text-xl font-bold heading-font mb-3">Full Access Audit Log</h3>
+            <p class="text-gray-400 leading-relaxed">See exactly who viewed your documents and when. Total transparency, total control.</p>
+        </div>
+    </section>
+
+    <!-- Stats strip -->
+    <section class="relative z-10 max-w-5xl mx-auto px-6 pb-32">
+        <div class="fade-up glass rounded-3xl p-10 grid grid-cols-3 gap-6 text-center">
+            <div>
+                <div class="text-4xl font-bold gradient-text heading-font">256-bit</div>
+                <div class="text-gray-400 text-sm mt-2">Encryption Standard</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold gradient-text heading-font">2FA</div>
+                <div class="text-gray-400 text-sm mt-2">Login Protection</div>
+            </div>
+            <div>
+                <div class="text-4xl font-bold gradient-text heading-font">24/7</div>
+                <div class="text-gray-400 text-sm mt-2">Document Access</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="relative z-10 max-w-3xl mx-auto text-center px-6 pb-32">
+        <h2 class="fade-up text-4xl font-bold heading-font mb-6">Ready to leave paper behind?</h2>
+        <p class="fade-up text-gray-400 mb-10 text-lg">Join KaziFile and walk into your next interview fully prepared — digitally.</p>
+        <a href="{% url 'signup' %}" class="fade-up glow-btn inline-block text-white px-10 py-4 rounded-full text-lg font-semibold heading-font">
+            Get Started — It's Free
+        </a>
+    </section>
+
+    <footer class="relative z-10 border-t border-white/5 py-10 text-center text-gray-500 text-sm">
+        Built by Shadrack Machoni · KaziFile © 2026
+    </footer>
+
+    <script>
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+    </script>
+
+</body>
+</html>

@@ -92,3 +92,7 @@ def document_log_view(request, doc_id):
     document = get_object_or_404(Document, id=doc_id, owner=request.user)
     logs = document.access_logs.all()
     return render(request, 'documents/document_log.html', {'document': document, 'logs': logs})
+def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'documents/landing.html')
