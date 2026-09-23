@@ -6,9 +6,11 @@ import qrcode
 import io
 import base64
 
+from django.conf import settings
+from cryptography.fernet import Fernet
+
 def get_master_key():
-    """The master key from environment — used only to encrypt/decrypt per-file keys."""
-    key = os.environ.get('FERNET_KEY')
+    key = settings.FERNET_KEY
     if not key:
         raise ValueError("FERNET_KEY not set in environment")
     return Fernet(key)

@@ -26,7 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wj%ujafnb()$)$!(b#e-_3fsw4s=0x0eyt9%12m$$j^pgbp+0j')
+from decouple import config
 
+FERNET_KEY = config('FERNET_KEY', default='')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
