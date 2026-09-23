@@ -1,5 +1,6 @@
 import secrets
 from datetime import timedelta
+from django.core.paginator import Paginator
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -26,11 +27,17 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
+from django.core.paginator import Paginator
+
 @login_required
 def dashboard_view(request):
-    documents = Document.objects.filter(owner=request.user).order_by('-uploaded_at')
-    return render(request, 'documents/dashboard.html', {'documents': documents})
+    documents_list = Document.objects.filter(owner=request.user).order_by('-uploaded_at')
 
+    paginator = Paginator(documents_list, 8)  # 8 documents per page
+    page_number = request.GET.get('page')
+    documents = paginator.get_page(page_number)
+
+    return render(request, 'documents/dashboard.html', {'documents': documents})
 
 @login_required
 def upload_view(request):
