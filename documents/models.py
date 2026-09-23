@@ -15,6 +15,7 @@ class Document(models.Model):
     title = models.CharField(max_length=255)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, blank=True, default='other')
     file = models.FileField(upload_to='documents/')
+    encrypted_file_key = models.TextField(blank=True)  # per-file key, encrypted with master key
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -6,25 +6,46 @@ import qrcode
 import io
 import base64
 
-DEFAULT_FERNET_KEY = 'tz8nR7y2G0d3X01_SmV1ZrV2L9cMh7Q11b4Ro0lQq7o='
-
-
-def get_fernet_key():
-    key = os.environ.get('FERNET_KEY', DEFAULT_FERNET_KEY)
+def get_master_key():
+    """The master key from environment — used only to encrypt/decrypt per-file keys."""
+    key = os.environ.get('FERNET_KEY')
     if not key:
         raise ValueError("FERNET_KEY not set in environment")
     return Fernet(key)
 
-def encrypt_file(file_path):
-    f = get_fernet_key()
+
+def generate_file_key():
+    """Generates a brand new random key, unique to a single file."""
+    return Fernet.generate_key()
+
+
+def encrypt_file_key(file_key):
+    """Encrypts a file's unique key using the master key, for safe storage in the database."""
+    master = get_master_key()
+    encrypted = master.encrypt(file_key)
+    return encrypted.decode()
+
+
+def decrypt_file_key(encrypted_file_key):
+    """Decrypts a file's unique key using the master key."""
+    master = get_master_key()
+    file_key = master.decrypt(encrypted_file_key.encode())
+    return file_key
+
+
+def encrypt_file(file_path, file_key):
+    """Encrypts a file's contents using its own unique key (not the master key)."""
+    f = Fernet(file_key)
     with open(file_path, 'rb') as file:
         file_data = file.read()
     encrypted_data = f.encrypt(file_data)
     with open(file_path, 'wb') as file:
         file.write(encrypted_data)
 
-def decrypt_file(file_path):
-    f = get_fernet_key()
+
+def decrypt_file(file_path, file_key):
+    """Decrypts a file's contents using its own unique key."""
+    f = Fernet(file_key)
     with open(file_path, 'rb') as file:
         encrypted_data = file.read()
     decrypted_data = f.decrypt(encrypted_data)
@@ -50,10 +71,6 @@ def guess_category(filename):
 
 
 def generate_qr_code_base64(url):
-    """
-    Generates a QR code for the given URL and returns it as a base64
-    string that can be embedded directly in an <img> tag.
-    """
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -62,11 +79,8 @@ def generate_qr_code_base64(url):
     )
     qr.add_data(url)
     qr.make(fit=True)
-
     img = qr.make_image(fill_color="black", back_color="white")
-
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
     img_str = base64.b64encode(buffer.getvalue()).decode()
-
     return f"data:image/png;base64,{img_str}"

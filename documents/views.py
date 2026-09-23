@@ -6,8 +6,18 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, Http404
 from .models import Document, ShareLink, AccessLog
 from .forms import DocumentUploadForm
-from .utils import encrypt_file, decrypt_file, guess_category, generate_qr_code_base64
+from .utils import (
+    encrypt_file, decrypt_file, guess_category, generate_qr_code_base64,
+    generate_file_key, encrypt_file_key, decrypt_file_key
+)
 import tempfile
+
+
+def landing_page(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'documents/landing.html')
+
 
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
@@ -15,10 +25,12 @@ def get_client_ip(request):
         return x_forwarded_for.split(',')[0]
     return request.META.get('REMOTE_ADDR')
 
+
 @login_required
 def dashboard_view(request):
     documents = Document.objects.filter(owner=request.user).order_by('-uploaded_at')
     return render(request, 'documents/dashboard.html', {'documents': documents})
+
 
 @login_required
 def upload_view(request):
@@ -32,12 +44,16 @@ def upload_view(request):
                 filename = request.FILES['file'].name
                 document.category = guess_category(filename)
 
+            file_key = generate_file_key()
+            document.encrypted_file_key = encrypt_file_key(file_key)
+
             document.save()
-            encrypt_file(document.file.path)
+            encrypt_file(document.file.path, file_key)
             return redirect('dashboard')
     else:
         form = DocumentUploadForm()
     return render(request, 'documents/upload.html', {'form': form})
+
 
 @login_required
 def delete_document(request, doc_id):
@@ -45,6 +61,7 @@ def delete_document(request, doc_id):
     document.file.delete()
     document.delete()
     return redirect('dashboard')
+
 
 @login_required
 def create_share_link(request, doc_id):
@@ -69,6 +86,7 @@ def create_share_link(request, doc_id):
         'qr_code_data': qr_code_data,
     })
 
+
 def view_shared_document(request, token):
     share_link = get_object_or_404(ShareLink, token=token)
     if share_link.expires_at < timezone.now():
@@ -80,19 +98,18 @@ def view_shared_document(request, token):
         ip_address=get_client_ip(request)
     )
 
-    decrypted_data = decrypt_file(share_link.document.file.path)
+    file_key = decrypt_file_key(share_link.document.encrypted_file_key)
+    decrypted_data = decrypt_file(share_link.document.file.path, file_key)
+
     temp_file = tempfile.NamedTemporaryFile()
     temp_file.write(decrypted_data)
     temp_file.seek(0)
 
     return FileResponse(temp_file, as_attachment=True, filename=share_link.document.title)
 
+
 @login_required
 def document_log_view(request, doc_id):
     document = get_object_or_404(Document, id=doc_id, owner=request.user)
     logs = document.access_logs.all()
     return render(request, 'documents/document_log.html', {'document': document, 'logs': logs})
-def landing_page(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    return render(request, 'documents/landing.html')
