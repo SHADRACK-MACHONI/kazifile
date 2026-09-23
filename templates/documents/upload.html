@@ -1,18 +1,252 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-6 text-gray-800">Upload a Document</h2>
-    <form method="post" enctype="multipart/form-data" class="space-y-4">
-        {% csrf_token %}
-        {% for field in form %}
-            <div>
-                <label class="block text-sm font-medium text-gray-600 mb-1">{{ field.label }}</label>
-                {{ field }}
+<style>
+    body { background: #050608; }
+
+    .spotlight-container {
+        position: relative;
+        overflow: hidden;
+    }
+    .spotlight {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,102,0,0.15), rgba(187,0,0,0.1) 40%, transparent 70%);
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        transition: opacity 0.3s ease;
+        opacity: 0;
+        z-index: 0;
+    }
+
+    .upload-shell {
+        background: #0d1117;
+        border: 1px solid rgba(255,255,255,0.08);
+        position: relative;
+        z-index: 1;
+    }
+
+    .dropzone {
+        border: 2px dashed rgba(255,255,255,0.15);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    .dropzone.dragover {
+        border-color: #006600;
+        background: rgba(0,102,0,0.08);
+        transform: scale(1.01);
+    }
+    .dropzone:hover {
+        border-color: rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.02);
+    }
+
+    .dropzone-icon {
+        transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dropzone.dragover .dropzone-icon,
+    .dropzone.has-file .dropzone-icon {
+        transform: scale(1.15) translateY(-4px);
+    }
+
+    .pulse-ring {
+        position: absolute;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1);
+        animation: pulse 3s ease-out infinite;
+    }
+    @keyframes pulse {
+        0% { width: 60px; height: 60px; opacity: 0.6; }
+        100% { width: 200px; height: 200px; opacity: 0; }
+    }
+
+    .step-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        transition: all 0.3s ease;
+    }
+    .step-dot.active {
+        background: linear-gradient(135deg, #BB0000, #006600);
+        width: 24px;
+        border-radius: 999px;
+    }
+
+    .field-input {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.2s ease;
+    }
+    .field-input:focus {
+        border-color: #006600;
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 0 0 4px rgba(0,102,0,0.1);
+        outline: none;
+    }
+
+    .file-chip {
+        background: linear-gradient(135deg, rgba(187,0,0,0.15), rgba(0,102,0,0.15));
+        border: 1px solid rgba(255,255,255,0.15);
+        animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #BB0000, #006600);
+        box-shadow: 0 8px 24px rgba(0,102,0,0.25);
+        transition: all 0.3s ease;
+    }
+    .submit-btn:hover:not(:disabled) {
+        box-shadow: 0 8px 32px rgba(187,0,0,0.35);
+        transform: translateY(-2px);
+    }
+    .submit-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .error-banner {
+        background: rgba(187,0,0,0.1);
+        border: 1px solid rgba(187,0,0,0.3);
+        animation: slideIn 0.3s ease;
+    }
+</style>
+
+<div class="max-w-xl mx-auto px-4 py-10 spotlight-container" id="spotlightArea">
+    <div class="spotlight" id="spotlight"></div>
+
+    <div class="relative z-10">
+        <div class="flex items-center justify-center gap-2 mb-8">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+        </div>
+
+        <div class="upload-shell rounded-3xl p-10">
+            <h2 class="text-3xl font-bold text-white mb-1" style="font-family:'Space Grotesk',sans-serif;">
+                Upload a Document
+            </h2>
+            <p class="text-gray-500 mb-6">Drag a file in, or click to browse. It's encrypted the moment it lands.</p>
+
+            {% if form.file.errors %}
+            <div class="error-banner text-red-300 text-sm rounded-xl px-4 py-3 mb-6 flex items-start gap-2">
+                <span>⚠️</span>
+                <span>{{ form.file.errors.0 }}</span>
             </div>
-        {% endfor %}
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-            Upload
-        </button>
-    </form>
+            {% endif %}
+            {% if form.non_field_errors %}
+            <div class="error-banner text-red-300 text-sm rounded-xl px-4 py-3 mb-6">
+                {{ form.non_field_errors.0 }}
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+
+                <div class="dropzone rounded-2xl p-10 text-center mb-6" id="dropzone">
+                    <div class="pulse-ring" style="left: 50%; top: 30px; margin-left: -30px;"></div>
+                    <div class="dropzone-icon text-5xl mb-4" id="dropIcon">📤</div>
+                    <p class="text-white font-medium mb-1" id="dropText">Drop your file here</p>
+                    <p class="text-gray-500 text-sm">PDF, JPG, PNG, DOC, DOCX — max 10MB</p>
+                    <div id="fileChip" class="file-chip hidden mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm text-white">
+                        <span id="fileName"></span>
+                        <button type="button" onclick="clearFile(event)" class="text-gray-300 hover:text-white ml-1">✕</button>
+                    </div>
+                </div>
+
+                <div class="space-y-5">
+                    {% for field in form %}
+                        {% if field.name == 'file' %}
+                            <div class="hidden">{{ field }}</div>
+                        {% else %}
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-btn w-full text-white py-3.5 rounded-full font-semibold mt-8" disabled>
+                    Select a file to continue
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
+
+<script>
+    const area = document.getElementById('spotlightArea');
+    const spotlight = document.getElementById('spotlight');
+    area.addEventListener('mousemove', (e) => {
+        const rect = area.getBoundingClientRect();
+        spotlight.style.left = (e.clientX - rect.left) + 'px';
+        spotlight.style.top = (e.clientY - rect.top) + 'px';
+        spotlight.style.opacity = '1';
+    });
+    area.addEventListener('mouseleave', () => { spotlight.style.opacity = '0'; });
+
+    document.querySelectorAll('#uploadForm select, #uploadForm input[type="text"]').forEach(el => {
+        el.classList.add('field-input', 'w-full', 'rounded-xl', 'px-4', 'py-3', 'text-white');
+    });
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.querySelector('#uploadForm input[type="file"]');
+    const fileChip = document.getElementById('fileChip');
+    const fileName = document.getElementById('fileName');
+    const dropText = document.getElementById('dropText');
+    const dropIcon = document.getElementById('dropIcon');
+    const submitBtn = document.getElementById('submitBtn');
+
+    dropzone.addEventListener('click', () => fileInput.click());
+
+    ['dragenter', 'dragover'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+        });
+    });
+    dropzone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileDisplay(file);
+        }
+    });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) updateFileDisplay(fileInput.files[0]);
+    });
+
+    function updateFileDisplay(file) {
+        fileName.innerText = file.name;
+        fileChip.classList.remove('hidden');
+        dropText.innerText = 'File ready';
+        dropIcon.innerText = '✅';
+        dropzone.classList.add('has-file');
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Upload & Encrypt';
+    }
+
+    function clearFile(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        fileChip.classList.add('hidden');
+        dropText.innerText = 'Drop your file here';
+        dropIcon.innerText = '📤';
+        dropzone.classList.remove('has-file');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Select a file to continue';
+    }
+</script>
 {% endblock %}
