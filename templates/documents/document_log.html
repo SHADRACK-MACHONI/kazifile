@@ -1,27 +1,103 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <h2 class="text-2xl font-bold mb-2 text-gray-800">Access History</h2>
-    <p class="text-gray-500 mb-6">{{ document.title }}</p>
+<style>
+    body { background: #0a0e1a; }
 
-    {% if logs %}
-    <div class="space-y-3">
-        {% for log in logs %}
-        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
-            <div>
-                <span class="font-medium text-gray-700">{{ log.get_action_display }}</span>
-                {% if log.ip_address %}
-                    <span class="text-sm text-gray-400 block">IP: {{ log.ip_address }}</span>
-                {% endif %}
-            </div>
-            <span class="text-sm text-gray-500">{{ log.timestamp|date:"M d, Y H:i" }}</span>
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .kenya-strip {
+        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    .timeline-line {
+        position: absolute;
+        left: 19px;
+        top: 40px;
+        bottom: -8px;
+        width: 2px;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.02));
+    }
+
+    .timeline-item:last-child .timeline-line { display: none; }
+
+    .icon-dot {
+        transition: all 0.3s ease;
+    }
+    .timeline-item:hover .icon-dot {
+        transform: scale(1.15);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+        opacity: 0;
+    }
+    @keyframes fadeIn {
+        to { opacity: 1; transform: translateX(0); }
+        from { transform: translateX(-10px); }
+    }
+
+    .badge-shared {
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.15));
+        border: 1px solid rgba(96,165,250,0.25);
+        color: #93c5fd;
+    }
+    .badge-viewed {
+        background: linear-gradient(135deg, rgba(187,0,0,0.12), rgba(0,102,0,0.12));
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #d1fae5;
+    }
+</style>
+
+<div class="max-w-3xl mx-auto px-4 py-10 text-white">
+
+    <div class="kenya-strip mb-8 w-24"></div>
+
+    <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-6 transition">
+        ← Back to Dashboard
+    </a>
+
+    <div class="glass rounded-3xl p-8">
+        <div class="flex items-center justify-between mb-1">
+            <h2 class="text-3xl font-bold" style="font-family:'Space Grotesk',sans-serif;">Access History</h2>
+            <span class="text-xs px-3 py-1 rounded-full glass text-gray-400">{{ logs|length }} event{{ logs|length|pluralize }}</span>
         </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p class="text-gray-500">No activity recorded yet.</p>
-    {% endif %}
+        <p class="text-gray-400 mb-10">Full activity trail for <span class="text-white font-medium">{{ document.title }}</span></p>
 
-    <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline mt-6 inline-block">← Back to Dashboard</a>
+        {% if logs %}
+        <div class="space-y-6">
+            {% for log in logs %}
+            <div class="timeline-item relative pl-14 fade-in" style=`"animation-delay: {{ forloop.counter0|add:'0' }}00ms">
+                <div class="timeline-line"></div>
+                <div class="icon-dot absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center text-lg
+                    {% if log.action == 'share_created' %}badge-shared{% else %}badge-viewed{% endif %}">
+                    {% if log.action == 'share_created' %}🔗{% else %}👁️{% endif %}
+                </div>
+                <div class="glass rounded-2xl p-4 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <div>
+                        <span class="font-semibold text-white">{{ log.get_action_display }}</span>
+                        {% if log.ip_address %}
+                            <div class="text-xs text-gray-500 mt-1 font-mono">IP: {{ log.ip_address }}</div>
+                        {% endif %}
+                    </div>
+                    <span class="text-sm text-gray-400 whitespace-nowrap">{{ log.timestamp|date:"M d, Y · H:i" }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-16">
+            <div class="text-5xl mb-4">🕒</div>
+            <p class="text-gray-300 text-lg mb-1">No activity recorded yet</p>
+            <p class="text-gray-500 text-sm">Once this document is shared or viewed, you'll see it here.</p>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
