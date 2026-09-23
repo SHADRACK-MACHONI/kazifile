@@ -27,9 +27,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-wj%ujafnb()$)$!(b#e-_3fsw4s=0x0eyt9%12m$$j^pgbp+0j')
 
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,[::1]').split(',')
+    if host.strip()
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -44,7 +49,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_otp',
     'django_otp.plugins.otp_totp',
-    'widget_tweaks'
+    
 ]
 
 MIDDLEWARE = [
