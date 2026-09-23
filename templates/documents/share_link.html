@@ -1,19 +1,125 @@
 {% extends 'base.html' %}
+
+{% block title %}Share Link Created — KaziFile{% endblock %}
+
 {% block content %}
-<div class="max-w-lg mx-auto bg-white p-8 rounded-2xl shadow-lg text-center">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">✅ Share Link Created</h2>
-    <p class="text-gray-600 mb-4">This link is valid for 2 days:</p>
+<div class="glass" style="max-width: 520px; margin: 0 auto; padding: 44px 36px; text-align: center;">
 
-    <div class="bg-gray-100 p-4 rounded-lg break-all text-sm text-blue-700 mb-6">
-        {{ full_url }}
+    <div style="width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 17px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(16,185,129,.22), rgba(16,185,129,.06)); font-size: 26px;">
+        ✅
     </div>
 
-    <div class="flex justify-center mb-6">
-        <img src="{{ qr_code_data }}" alt="QR Code" class="w-48 h-48 border border-gray-200 rounded-lg" />
+    <h2 class="heading-font" style="font-size: 24px; font-weight: 700; margin-bottom: 8px;">Share link created</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-bottom: 26px;">
+        Anyone with this link can view the document until it expires.
+    </p>
+
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px;">
+        <span class="status-dot" id="expiryDot" style="background: #34d399; box-shadow: 0 0 12px rgba(52,211,153,.7); width: 8px; height: 8px; border-radius: 50%;"></span>
+        <span id="expiryLabel" style="font-size: 13px; color: #9ca3af;" data-expires="{{ expires_at|date:'c' }}">
+            Expires {{ expires_at|date:"M j, Y \a\t g:i A" }}
+        </span>
     </div>
 
-    <p class="text-sm text-gray-500 mb-6">Scan this code to open the document directly on another device.</p>
+    <div style="display: flex; align-items: stretch; gap: 8px; margin: 22px 0 8px; text-align: left;">
+        <div id="shareUrl" style="flex: 1; min-width: 0; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 13px 16px; font-size: 13px; color: #93c5fd; word-break: break-all; font-family: 'Space Grotesk', monospace;">{{ full_url }}</div>
+        <button type="button" id="copyBtn" class="secondary-btn" style="flex-shrink: 0; padding: 0 18px;" data-url="{{ full_url }}">
+            <span id="copyBtnLabel">Copy</span>
+        </button>
+    </div>
+    <p id="copyFeedback" style="min-height: 18px; font-size: 12px; color: #34d399; margin: 0 0 22px; opacity: 0; transition: opacity .2s ease;">Copied to clipboard</p>
 
-    <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline">← Back to Dashboard</a>
+    <div class="glass" style="display: inline-flex; padding: 18px; border-radius: 20px; margin-bottom: 14px;">
+        <img src="{{ qr_code_data }}" alt="QR code linking to the shared document" width="192" height="192" style="width: 192px; height: 192px; border-radius: 10px; display: block; background: white; padding: 8px;" />
+    </div>
+
+    <div style="margin-bottom: 30px;">
+        <a href="{{ qr_code_data }}" download="kazifile-qr-code.png" class="nav-link" style="display: inline-flex; gap: 6px; color: #9ca3af;">
+            Download QR code
+        </a>
+    </div>
+
+    <p style="font-size: 13px; color: #6b7280; margin-bottom: 30px; line-height: 1.7;">
+        Scan this code on another device to open the document directly — no login required while the link is active.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <a href="{% url 'dashboard' %}" class="secondary-btn">← Back to Dashboard</a>
+        <a href="{% url 'upload' %}" class="glow-btn">Share another file</a>
+    </div>
+
 </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // Copy link to clipboard
+    const copyBtn = document.getElementById('copyBtn');
+    const copyLabel = document.getElementById('copyBtnLabel');
+    const copyFeedback = document.getElementById('copyFeedback');
+
+    copyBtn.addEventListener('click', async () => {
+        const url = copyBtn.dataset.url;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(url);
+            } else {
+                const temp = document.createElement('textarea');
+                temp.value = url;
+                temp.style.position = 'fixed';
+                temp.style.opacity = '0';
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+            }
+            copyLabel.textContent = 'Copied ✓';
+            copyFeedback.style.opacity = '1';
+            setTimeout(() => {
+                copyLabel.textContent = 'Copy';
+                copyFeedback.style.opacity = '0';
+            }, 2000);
+        } catch (err) {
+            copyLabel.textContent = 'Copy failed';
+            setTimeout(() => { copyLabel.textContent = 'Copy'; }, 2000);
+        }
+    });
+
+    // Live "expires in" countdown + expired state
+    const expiryLabel = document.getElementById('expiryLabel');
+    const expiryDot = document.getElementById('expiryDot');
+    const expiresAt = expiryLabel.dataset.expires ? new Date(expiryLabel.dataset.expires) : null;
+
+    function renderCountdown() {
+        if (!expiresAt || isNaN(expiresAt.getTime())) return;
+        const diffMs = expiresAt.getTime() - Date.now();
+
+        if (diffMs <= 0) {
+            expiryLabel.textContent = 'This link has expired';
+            expiryDot.style.background = '#f87171';
+            expiryDot.style.boxShadow = '0 0 12px rgba(248,113,113,.7)';
+            copyBtn.disabled = true;
+            copyBtn.style.opacity = '0.5';
+            copyBtn.style.cursor = 'not-allowed';
+            return;
+        }
+
+        const hours = Math.floor(diffMs / 3600000);
+        const minutes = Math.floor((diffMs % 3600000) / 60000);
+
+        if (hours >= 24) {
+            const days = Math.floor(hours / 24);
+            expiryLabel.textContent = `Expires in ${days} day${days === 1 ? '' : 's'}`;
+        } else if (hours >= 1) {
+            expiryLabel.textContent = `Expires in ${hours}h ${minutes}m`;
+        } else {
+            expiryLabel.textContent = `Expires in ${minutes} minute${minutes === 1 ? '' : 's'}`;
+            expiryDot.style.background = '#fbbf24';
+            expiryDot.style.boxShadow = '0 0 12px rgba(251,191,36,.7)';
+        }
+    }
+
+    renderCountdown();
+    setInterval(renderCountdown, 30000);
+</script>
 {% endblock %}

@@ -1,20 +1,98 @@
 {% extends 'base.html' %}
+
+{% block title %}Verify your identity — KaziFile{% endblock %}
+
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg text-center">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Enter Verification Code</h2>
-    <p class="text-gray-600 mb-6">Open your authenticator app and enter the 6-digit code.</p>
+<div class="glass" style="max-width: 420px; margin: 0 auto; padding: 44px 36px; text-align: center;">
+
+    <div style="width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 17px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.08)); font-size: 24px;">
+        🔐
+    </div>
+
+    <h2 class="heading-font" style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Enter verification code</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-bottom: 28px; line-height: 1.7;">
+        Open your authenticator app and enter the 6-digit code.
+    </p>
 
     {% if error %}
-        <p class="text-red-500 mb-4">{{ error }}</p>
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); color: #fca5a5; font-size: 13px; padding: 12px 14px; border-radius: 14px; margin-bottom: 20px; text-align: left;">
+            <span style="flex-shrink: 0;">⚠️</span>
+            <span>{{ error }}</span>
+        </div>
     {% endif %}
 
-    <form method="post" class="space-y-4">
+    <form method="post" id="verifyForm" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
-        <input type="text" name="token" placeholder="6-digit code" maxlength="6"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+
+        <input
+            type="text"
+            name="token"
+            id="tokenInput"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="one-time-code"
+            autofocus
+            required
+            style="
+                width: 100%;
+                background: rgba(255,255,255,.04);
+                border: 1px solid rgba(255,255,255,.10);
+                border-radius: 14px;
+                padding: 16px 12px;
+                text-align: center;
+                font-family: 'Space Grotesk', monospace;
+                font-size: 26px;
+                font-weight: 600;
+                letter-spacing: 10px;
+                color: white;
+                transition: border-color .2s ease, background .2s ease;
+            "
+            onfocus="this.style.borderColor='#60a5fa'; this.style.background='rgba(255,255,255,.06)';"
+            onblur="this.style.borderColor='rgba(255,255,255,.10)'; this.style.background='rgba(255,255,255,.04)';"
+        >
+
+        <button type="submit" class="glow-btn" style="width: 100%;" id="verifyBtn">
             Verify
         </button>
     </form>
+
+    <p style="font-size: 12px; color: #6b7280; margin-top: 22px;">
+        Codes refresh every 30 seconds — if it expired, just use the next one.
+    </p>
+
 </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // UX-only enhancements — form action, method, field name, and validation
+    // behavior are untouched so the backend sees exactly the same request.
+    const tokenInput = document.getElementById('tokenInput');
+    const verifyForm = document.getElementById('verifyForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    // Strip anything non-numeric as the user types (cosmetic only — the
+    // "required" + maxlength on the input still govern real validation).
+    tokenInput.addEventListener('input', () => {
+        tokenInput.value = tokenInput.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    // Handle pasting a full code (e.g. from a password manager) cleanly.
+    tokenInput.addEventListener('paste', (e) => {
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        if (/^\d{6}$/.test(pasted.trim())) {
+            e.preventDefault();
+            tokenInput.value = pasted.trim();
+        }
+    });
+
+    // Prevent accidental double-submits, without blocking the normal POST.
+    verifyForm.addEventListener('submit', () => {
+        verifyBtn.disabled = true;
+        verifyBtn.style.opacity = '0.7';
+        verifyBtn.textContent = 'Verifying…';
+    });
+</script>
 {% endblock %}

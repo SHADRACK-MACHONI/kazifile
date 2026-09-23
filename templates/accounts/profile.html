@@ -1,46 +1,160 @@
 {% extends 'base.html' %}
+
+{% block title %}{{ user.username }} — Profile — KaziFile{% endblock %}
+
 {% block content %}
-<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
-    <div class="flex items-center space-x-4 mb-8">
-        <div class="w-16 h-16 bg-blue-600 text-white flex items-center justify-center rounded-full text-2xl font-bold">
-            {{ user.username|first|upper }}
-        </div>
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">{{ user.username }}</h2>
-            <p class="text-gray-500">{{ user.email }}</p>
+<div style="max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+
+    <div class="glass" style="padding: 36px;">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div style="width: 72px; height: 72px; flex-shrink: 0; border-radius: 22px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6, #8b5cf6); box-shadow: 0 0 25px rgba(59,130,246,.3); font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700;">
+                {{ user.username|first|upper }}
+            </div>
+            <div style="flex: 1; min-width: 180px;">
+                <h2 class="heading-font" style="font-size: 22px; font-weight: 700; margin-bottom: 4px;">{{ user.username }}</h2>
+                <p style="color: #9ca3af; font-size: 14px; margin: 0;">{{ user.email }}</p>
+            </div>
+            <span style="flex-shrink: 0; font-size: 12px; color: #9ca3af; background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); padding: 6px 12px; border-radius: 999px;">
+                Member for {{ user.date_joined|timesince }}
+            </span>
         </div>
     </div>
 
-    <div class="border-t border-gray-200 pt-6 space-y-4">
-        <div class="flex justify-between">
-            <span class="text-gray-600 font-medium">Username</span>
-            <span class="text-gray-800">{{ user.username }}</span>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+        <div class="glass" style="padding: 22px; text-align: center;">
+            <div class="heading-font gradient-text" style="font-size: 28px; font-weight: 700;">{{ user.documents.count }}</div>
+            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Documents stored</div>
         </div>
-        <div class="flex justify-between">
-            <span class="text-gray-600 font-medium">Email</span>
-            <span class="text-gray-800">{{ user.email }}</span>
+        <div class="glass" style="padding: 22px; text-align: center;">
+            {% if has_2fa %}
+            <div class="heading-font" style="font-size: 28px; font-weight: 700; color: #34d399;">
+                On
+            </div>
+            {% else %}
+            <div class="heading-font" style="font-size: 28px; font-weight: 700; color: #fbbf24;">
+                Off
+            </div>
+            {% endif %}
+            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Two-factor auth</div>
         </div>
-        <div class="flex justify-between">
-            <span class="text-gray-600 font-medium">Joined</span>
-            <span class="text-gray-800">{{ user.date_joined|date:"M d, Y" }}</span>
-        </div>
-        <div class="flex justify-between">
-            <span class="text-gray-600 font-medium">Total Documents</span>
-            <span class="text-gray-800">{{ user.documents.count }}</span>
+        <div class="glass" style="padding: 22px; text-align: center;">
+            <div class="heading-font" style="font-size: 18px; font-weight: 700;">{{ user.date_joined|date:"M Y" }}</div>
+            <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Joined</div>
         </div>
     </div>
 
-    <div class="border-t border-gray-200 mt-6 pt-6 flex justify-between">
-        <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline">← Back to Dashboard</a>
-        <a href="{% url 'logout' %}" class="text-red-500 hover:underline">Logout</a>
+    <div class="glass" style="padding: 8px 36px;">
+
+        <div class="profile-row">
+            <span class="row-label">Username</span>
+            <span class="row-value">{{ user.username }}</span>
+        </div>
+
+        <div class="profile-row">
+            <span class="row-label">Email</span>
+            <span class="row-value" style="display: flex; align-items: center; gap: 10px;">
+                {{ user.email }}
+                <button type="button" class="copy-email" data-email="{{ user.email }}" style="background: none; border: none; color: #6b7280; cursor: pointer; font-size: 12px; padding: 2px;" title="Copy email">
+                    ⧉
+                </button>
+            </span>
+        </div>
+
+        <div class="profile-row">
+            <span class="row-label">Joined</span>
+            <span class="row-value">{{ user.date_joined|date:"M d, Y" }}</span>
+        </div>
+
+        <div class="profile-row">
+            <span class="row-label">Total documents</span>
+            <span class="row-value">{{ user.documents.count }}</span>
+        </div>
+
+        <div class="profile-row">
+            <span class="row-label">Two-factor authentication</span>
+            <span class="row-value">
+                {% if has_2fa %}
+                    <span style="display: inline-flex; align-items: center; gap: 6px; color: #34d399; font-weight: 600;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,.7);"></span>
+                        Enabled
+                    </span>
+                {% else %}
+                    <a href="{% url 'setup_2fa' %}" style="color: #93c5fd; text-decoration: none; font-weight: 600;">Set up now →</a>
+                {% endif %}
+            </span>
+        </div>
+
     </div>
-    <div class="flex justify-between">
-    <span class="text-gray-600 font-medium">Two-Factor Authentication</span>
-    {% if has_2fa %}
-        <span class="text-green-600 font-semibold">Enabled ✅</span>
-    {% else %}
-        <a href="{% url 'setup_2fa' %}" class="text-blue-600 hover:underline">Set up now</a>
-    {% endif %}
+
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 4px 4px 0;">
+        <a href="{% url 'dashboard' %}" class="secondary-btn">← Back to Dashboard</a>
+        <form method="post" action="{% url 'logout' %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="nav-link danger" style="padding: 0 18px; min-height: 46px; border: 1px solid rgba(248,113,113,.2); border-radius: 999px;">
+                Logout
+            </button>
+        </form>
+    </div>
+
 </div>
-</div>
+{% endblock %}
+
+{% block extra_style %}
+    .profile-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 0;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .profile-row:last-child { border-bottom: none; }
+
+    .row-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ca3af;
+    }
+
+    .row-value {
+        font-size: 14px;
+        color: white;
+        text-align: right;
+    }
+
+    @media (max-width: 500px) {
+        .profile-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+        .row-value { text-align: left; }
+    }
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // Cosmetic: copy email to clipboard, no backend involved.
+    document.querySelectorAll('.copy-email').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const email = btn.dataset.email;
+            const original = btn.textContent;
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(email);
+                } else {
+                    const temp = document.createElement('textarea');
+                    temp.value = email;
+                    temp.style.position = 'fixed';
+                    temp.style.opacity = '0';
+                    document.body.appendChild(temp);
+                    temp.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(temp);
+                }
+                btn.textContent = '✓';
+                setTimeout(() => { btn.textContent = original; }, 1500);
+            } catch (err) {
+                btn.textContent = '✕';
+                setTimeout(() => { btn.textContent = original; }, 1500);
+            }
+        });
+    });
+</script>
 {% endblock %}

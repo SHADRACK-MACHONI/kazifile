@@ -1,89 +1,58 @@
 {% extends 'base.html' %}
+
+{% block title %}Login — KaziFile{% endblock %}
+
 {% block content %}
-<style>
-    .glass {
-        background: rgba(255, 255, 255, 0.04);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .kenya-strip {
-        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
-        height: 4px;
-        border-radius: 999px;
-    }
-
-    .field-input {
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: all 0.2s ease;
-    }
-    .field-input:focus {
-        border-color: #006600;
-        background: rgba(255,255,255,0.05);
-        box-shadow: 0 0 0 4px rgba(0,102,0,0.1);
-        outline: none;
-    }
-
-    .submit-btn {
-        background: linear-gradient(135deg, #BB0000, #006600);
-        box-shadow: 0 8px 24px rgba(0,102,0,0.25);
-        transition: all 0.3s ease;
-    }
-    .submit-btn:hover {
-        box-shadow: 0 8px 32px rgba(187,0,0,0.35);
-        transform: translateY(-2px);
-    }
-
-    .error-banner, .lockout-banner {
-        animation: slideIn 0.3s ease;
-    }
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .fade-in {
-        animation: fadeIn 0.5s ease forwards;
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    @keyframes fadeIn {
-        to { opacity: 1; transform: translateY(0); }
-    }
-</style>
-
 <div class="max-w-md mx-auto px-4 text-white">
 
     <div class="kenya-strip mb-8 w-24 mx-auto"></div>
 
-    <div class="glass rounded-3xl p-8 fade-in">
-        <h2 class="text-3xl font-bold mb-1" style="font-family:'Space Grotesk',sans-serif;">Welcome back</h2>
+    <div class="glass rounded-3xl p-8 login-card">
+
+        <div class="flex items-center gap-3 mb-1">
+            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#BB0000,#006600);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;flex-shrink:0;">K</div>
+            <h2 class="text-3xl font-bold" style="font-family:'Space Grotesk',sans-serif;">Welcome back</h2>
+        </div>
         <p class="text-gray-400 mb-6">Log in to access your secure vault.</p>
 
         {% if locked_out %}
-        <div class="lockout-banner bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
+        <div class="lockout-banner bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 mb-4 flex items-start gap-2" id="lockoutBanner" data-minutes="{{ lockout_minutes }}">
             <span>🔒</span>
-            <span>Too many failed login attempts. Please try again in {{ lockout_minutes }} minute{{ lockout_minutes|pluralize }}.</span>
+            <span>
+                Too many failed login attempts.
+                <span id="lockoutCountdown">Please try again in {{ lockout_minutes }} minute{{ lockout_minutes|pluralize }}.</span>
+            </span>
         </div>
         {% else %}
             {% if form.non_field_errors %}
-            <div class="error-banner bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 mb-4">
-                {{ form.non_field_errors.0 }}
+            <div class="error-banner bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl px-4 py-3 mb-4 flex items-start gap-2">
+                <span>⚠️</span>
+                <span>{{ form.non_field_errors.0 }}</span>
             </div>
             {% endif %}
 
-            <form method="post" class="space-y-5">
+            <form method="post" class="space-y-5" id="loginForm" novalidate>
                 {% csrf_token %}
                 {% for field in form %}
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{{ field.label }}</label>
+                    <div class="field-group">
+                        <div class="flex items-center justify-between mb-2">
+                            <label for="{{ field.id_for_label }}" class="block text-xs font-semibold text-gray-400 uppercase tracking-wide">{{ field.label }}</label>
+                            {% if field.field.widget.input_type == 'password' %}
+                            <button type="button" class="toggle-password text-xs text-gray-500 hover:text-gray-300" data-target="{{ field.id_for_label }}" tabindex="-1">Show</button>
+                            {% endif %}
+                        </div>
                         {{ field }}
+                        {% if field.errors %}
+                            <p class="text-xs text-red-400 mt-1.5">{{ field.errors|striptags }}</p>
+                        {% endif %}
+                        {% if field.field.widget.input_type == 'password' %}
+                        <p class="caps-warning text-xs text-amber-400 mt-1.5 hidden" data-for="{{ field.id_for_label }}">⚠ Caps Lock is on</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
-                <button type="submit" class="submit-btn w-full text-white py-3 rounded-full font-semibold mt-2">
-                    Login
+
+                <button type="submit" class="submit-btn w-full text-white py-3 rounded-full font-semibold mt-2 flex items-center justify-center gap-2" id="submitBtn">
+                    <span id="submitLabel">Login</span>
                 </button>
             </form>
         {% endif %}
@@ -94,12 +63,152 @@
         </p>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_style %}
+    .kenya-strip {
+        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    .login-card {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: cardIn .55s cubic-bezier(.2,.7,.3,1) forwards;
+    }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+    .field-group input {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        width: 100%;
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: white;
+        font-size: 14px;
+    }
+    .field-group input::placeholder { color: #6b7280; }
+    .field-group input:focus {
+        border-color: #006600;
+        background: rgba(255,255,255,0.05);
+        box-shadow: 0 0 0 4px rgba(0,102,0,0.12);
+        outline: none;
+    }
+    .field-group input.field-error {
+        border-color: rgba(248,113,113,.5);
+    }
+
+    .toggle-password {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #BB0000, #006600);
+        box-shadow: 0 8px 24px rgba(0,102,0,0.25);
+        transition: box-shadow .3s ease, transform .3s ease, opacity .2s ease;
+        border: none;
+        cursor: pointer;
+    }
+    .submit-btn:hover:not(:disabled) {
+        box-shadow: 0 8px 32px rgba(187,0,0,0.35);
+        transform: translateY(-2px);
+    }
+    .submit-btn:disabled {
+        opacity: .7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .spinner {
+        width: 15px; height: 15px;
+        border: 2px solid rgba(255,255,255,.4);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin .7s linear infinite;
+        display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .lockout-banner, .error-banner {
+        animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+{% endblock %}
+
+{% block extra_script %}
 <script>
-    document.querySelectorAll('#uploadForm select, input[type="text"], input[type="password"], input[type="email"]').forEach(el => {
-        if (el.closest('form')) {
-            el.classList.add('field-input', 'w-full', 'rounded-xl', 'px-4', 'py-3', 'text-white');
+    // Show/hide password — scoped strictly to this form's own inputs,
+    // fixing the original script's stray "#uploadForm" selector (a
+    // leftover from a different page) that meant it never reliably
+    // targeted this form's fields.
+    document.querySelectorAll('.toggle-password').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
+            const showing = input.type === 'text';
+            input.type = showing ? 'password' : 'text';
+            btn.textContent = showing ? 'Show' : 'Hide';
+        });
+    });
+
+    // Caps Lock warning on password fields — purely a UX hint, doesn't
+    // touch what gets submitted.
+    document.querySelectorAll('.field-group input[type="password"], .field-group input[type="text"]').forEach(input => {
+        const warning = document.querySelector(`.caps-warning[data-for="${input.id}"]`);
+        if (!warning) return;
+        input.addEventListener('keyup', (e) => {
+            const capsOn = e.getModifierState && e.getModifierState('CapsLock');
+            warning.classList.toggle('hidden', !capsOn);
+        });
+        input.addEventListener('blur', () => warning.classList.add('hidden'));
+    });
+
+    // Mark fields with server-side errors so they pick up the red border.
+    document.querySelectorAll('.field-group').forEach(group => {
+        if (group.querySelector('.text-red-400')) {
+            const input = group.querySelector('input');
+            if (input) input.classList.add('field-error');
         }
     });
+
+    // Prevent double-submit + show a busy state, without blocking the real POST.
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', () => {
+            const btn = document.getElementById('submitBtn');
+            const label = document.getElementById('submitLabel');
+            btn.disabled = true;
+            label.innerHTML = '<span class="spinner"></span> Logging in…';
+        });
+    }
+
+    // Live lockout countdown so the banner counts down instead of sitting
+    // static at "N minutes" for the whole wait.
+    const lockoutBanner = document.getElementById('lockoutBanner');
+    if (lockoutBanner) {
+        let remainingSeconds = parseFloat(lockoutBanner.dataset.minutes || '0') * 60;
+        const countdownEl = document.getElementById('lockoutCountdown');
+
+        const tick = () => {
+            remainingSeconds -= 1;
+            if (remainingSeconds <= 0) {
+                countdownEl.textContent = 'You can try logging in again now.';
+                clearInterval(timer);
+                return;
+            }
+            const m = Math.floor(remainingSeconds / 60);
+            const s = Math.floor(remainingSeconds % 60);
+            countdownEl.textContent = `Please try again in ${m}:${String(s).padStart(2, '0')}.`;
+        };
+        const timer = setInterval(tick, 1000);
+    }
 </script>
 {% endblock %}

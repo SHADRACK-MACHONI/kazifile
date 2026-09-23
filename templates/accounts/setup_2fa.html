@@ -1,26 +1,122 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-lg text-center">
-    <h2 class="text-2xl font-bold mb-4 text-gray-800">Set Up Two-Factor Authentication</h2>
-    <p class="text-gray-600 mb-6">Scan this code with Google Authenticator or Authy:</p>
 
-    <div class="flex justify-center mb-6">
-        <img src="{{ qr_code_data }}" alt="2FA QR Code" class="w-48 h-48 border border-gray-200 rounded-lg" />
+{% block title %}Set up two-factor authentication — KaziFile{% endblock %}
+
+{% block content %}
+<div class="glass" style="max-width: 460px; margin: 0 auto; padding: 44px 36px; text-align: center;">
+
+    <div style="width: 56px; height: 56px; margin: 0 auto 22px; border-radius: 17px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(59,130,246,.2), rgba(139,92,246,.08)); font-size: 24px;">
+        🔐
+    </div>
+
+    <h2 class="heading-font" style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Set up two-factor authentication</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-bottom: 26px; line-height: 1.7;">
+        Scan this code with Google Authenticator, Authy, or any TOTP app.
+    </p>
+
+    <div class="glass" style="display: inline-flex; padding: 18px; border-radius: 20px; margin-bottom: 10px;">
+        <img src="{{ qr_code_data }}" alt="2FA setup QR code" width="192" height="192" style="width: 192px; height: 192px; border-radius: 10px; display: block; background: white; padding: 8px;" />
+    </div>
+
+    <div style="margin-bottom: 26px;">
+        <button type="button" id="toggleSecret" style="background: none; border: none; color: #93c5fd; font-size: 12px; cursor: pointer; padding: 4px;">
+            Can't scan it? Enter code manually
+        </button>
+        {% if manual_key %}
+        <div id="secretBox" style="display: none; margin-top: 10px;">
+            <div style="background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; padding: 10px 14px; font-family: 'Space Grotesk', monospace; font-size: 13px; letter-spacing: 1px; color: #d1d5db; word-break: break-all;">
+                {{ manual_key }}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     {% if error %}
-        <p class="text-red-500 mb-4">{{ error }}</p>
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.2); color: #fca5a5; font-size: 13px; padding: 12px 14px; border-radius: 14px; margin-bottom: 20px; text-align: left;">
+            <span style="flex-shrink: 0;">⚠️</span>
+            <span>{{ error }}</span>
+        </div>
     {% endif %}
 
-    <form method="post" class="space-y-4">
+    <form method="post" id="verifyForm" style="display: flex; flex-direction: column; gap: 16px;">
         {% csrf_token %}
-        <input type="text" name="token" placeholder="Enter 6-digit code" maxlength="6"
-               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-center text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
-            Verify & Activate
+
+        <input
+            type="text"
+            name="token"
+            id="tokenInput"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            autocomplete="one-time-code"
+            required
+            style="
+                width: 100%;
+                background: rgba(255,255,255,.04);
+                border: 1px solid rgba(255,255,255,.10);
+                border-radius: 14px;
+                padding: 16px 12px;
+                text-align: center;
+                font-family: 'Space Grotesk', monospace;
+                font-size: 26px;
+                font-weight: 600;
+                letter-spacing: 10px;
+                color: white;
+                transition: border-color .2s ease, background .2s ease;
+            "
+            onfocus="this.style.borderColor='#60a5fa'; this.style.background='rgba(255,255,255,.06)';"
+            onblur="this.style.borderColor='rgba(255,255,255,.10)'; this.style.background='rgba(255,255,255,.04)';"
+        >
+
+        <button type="submit" class="glow-btn" style="width: 100%;" id="verifyBtn">
+            Verify &amp; Activate
         </button>
     </form>
 
-    <a href="{% url 'dashboard' %}" class="text-sm text-gray-400 hover:underline mt-4 inline-block">Skip for now</a>
+    <a href="{% url 'dashboard' %}" class="nav-link" style="margin-top: 18px; color: #6b7280; font-size: 13px;">Skip for now</a>
+
 </div>
+{% endblock %}
+
+{% block extra_script %}
+<script>
+    // Cosmetic only — same form action, method, field name, and required
+    // validation as before. Nothing backend-facing changed.
+
+    // Reveal the manual entry key (if provided) without cluttering the default view.
+    const toggleSecret = document.getElementById('toggleSecret');
+    const secretBox = document.getElementById('secretBox');
+    if (toggleSecret && secretBox) {
+        toggleSecret.addEventListener('click', () => {
+            const showing = secretBox.style.display === 'block';
+            secretBox.style.display = showing ? 'none' : 'block';
+            toggleSecret.textContent = showing ? "Can't scan it? Enter code manually" : 'Hide code';
+        });
+    } else if (toggleSecret) {
+        toggleSecret.style.display = 'none';
+    }
+
+    const tokenInput = document.getElementById('tokenInput');
+    const verifyForm = document.getElementById('verifyForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+
+    tokenInput.addEventListener('input', () => {
+        tokenInput.value = tokenInput.value.replace(/\D/g, '').slice(0, 6);
+    });
+
+    tokenInput.addEventListener('paste', (e) => {
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        if (/^\d{6}$/.test(pasted.trim())) {
+            e.preventDefault();
+            tokenInput.value = pasted.trim();
+        }
+    });
+
+    verifyForm.addEventListener('submit', () => {
+        verifyBtn.disabled = true;
+        verifyBtn.style.opacity = '0.7';
+        verifyBtn.textContent = 'Verifying…';
+    });
+</script>
 {% endblock %}
