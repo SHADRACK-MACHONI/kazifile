@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'django_otp',
     'django_otp.plugins.otp_totp',
+    'widget_tweaks'
 ]
 
 MIDDLEWARE = [
