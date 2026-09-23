@@ -1,31 +1,180 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="flex justify-between items-center mb-8">
-    <h2 class="text-3xl font-bold text-gray-800">My Documents</h2>
-    <a href="{% url 'upload' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
-        + Upload Document
-    </a>
-</div>
+<style>
+    body { background: #0a0e1a; }
 
-{% if documents %}
-<div class="grid gap-4">
-    {% for doc in documents %}
-    <div class="bg-white p-5 rounded-xl shadow flex justify-between items-center">
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .doc-card {
+        transition: all 0.3s ease;
+    }
+    .doc-card:hover {
+        transform: translateY(-4px);
+        background: rgba(255, 255, 255, 0.07);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .kenya-strip {
+        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
+        height: 4px;
+        border-radius: 999px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, rgba(187,0,0,0.08), rgba(0,102,0,0.08));
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .category-pill {
+        transition: all 0.2s ease;
+    }
+    .category-pill.active {
+        background: linear-gradient(135deg, #BB0000, #006600);
+        color: white;
+        border-color: transparent;
+    }
+
+    .glow-upload {
+        background: linear-gradient(135deg, #BB0000, #006600);
+        box-shadow: 0 0 20px rgba(187, 0, 0, 0.3), 0 0 30px rgba(0, 102, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+    .glow-upload:hover {
+        box-shadow: 0 0 30px rgba(187, 0, 0, 0.5), 0 0 40px rgba(0, 102, 0, 0.4);
+        transform: translateY(-2px);
+    }
+
+    .fade-in {
+        animation: fadeIn 0.5s ease forwards;
+        opacity: 0;
+    }
+    @keyframes fadeIn {
+        to { opacity: 1; transform: translateY(0); }
+        from { transform: translateY(10px); }
+    }
+</style>
+
+<div class="max-w-6xl mx-auto px-4 py-10 text-white">
+
+    <!-- Kenyan accent strip -->
+    <div class="kenya-strip mb-8 w-24"></div>
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-10">
         <div>
-            <h3 class="font-semibold text-gray-800">{{ doc.title }}</h3>
-            <span class="text-sm text-gray-500">{{ doc.get_category_display }} · Uploaded {{ doc.uploaded_at|date:"M d, Y" }}</span>
+            <h2 class="text-4xl font-bold" style="font-family:'Space Grotesk',sans-serif;">My Documents</h2>
+            <p class="text-gray-400 mt-1">Everything you need, encrypted and ready to share.</p>
         </div>
-        <div class="space-x-3">
-            <a href="{% url 'create_share_link' doc.id %}" class="text-blue-600 hover:underline text-sm">Share</a>
-            <a href="{% url 'delete_document' doc.id %}" class="text-red-500 hover:underline text-sm">Delete</a>
+        <a href="{% url 'upload' %}" class="glow-upload text-white px-6 py-3 rounded-full font-semibold text-sm whitespace-nowrap">
+            + Upload Document
+        </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div class="stat-card rounded-2xl p-5">
+            <div class="text-3xl font-bold">{{ documents|length }}</div>
+            <div class="text-gray-400 text-sm mt-1">Total Documents</div>
+        </div>
+        <div class="stat-card rounded-2xl p-5">
+            <div class="text-3xl font-bold">🔐</div>
+            <div class="text-gray-400 text-sm mt-1">Fully Encrypted</div>
+        </div>
+        <div class="stat-card rounded-2xl p-5">
+            <div class="text-3xl font-bold">📱</div>
+            <div class="text-gray-400 text-sm mt-1">QR Ready</div>
+        </div>
+        <div class="stat-card rounded-2xl p-5">
+            <div class="text-3xl font-bold">2FA</div>
+            <div class="text-gray-400 text-sm mt-1">Login Secured</div>
         </div>
     </div>
-    {% endfor %}
+
+    <!-- Search + filter -->
+    <div class="glass rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center">
+        <input
+            type="text"
+            id="searchInput"
+            placeholder="Search your documents..."
+            class="flex-1 bg-transparent border border-white/10 rounded-full px-5 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-white/30 w-full"
+            onkeyup="filterDocs()"
+        >
+        <div class="flex gap-2 flex-wrap justify-center" id="categoryFilters">
+            <button class="category-pill active border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="all">All</button>
+            <button class="category-pill border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="id">ID</button>
+            <button class="category-pill border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="academic">Academic</button>
+            <button class="category-pill border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="certificate">Certificate</button>
+            <button class="category-pill border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="cv">CV</button>
+            <button class="category-pill border border-white/10 px-4 py-1.5 rounded-full text-sm" data-category="reference">Reference</button>
+        </div>
+    </div>
+
+    {% if documents %}
+    <div class="grid gap-4" id="docGrid">
+        {% for doc in documents %}
+        <div class="doc-card glass rounded-2xl p-5 flex justify-between items-center fade-in doc-item"
+             data-title="{{ doc.title|lower }}" data-category="{{ doc.category }}"
+             style=`"animation-delay: {{ forloop.counter0|add:'0' }}00ms">`
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                     style="background: linear-gradient(135deg, rgba(187,0,0,0.15), rgba(0,102,0,0.15));">
+                    {% if doc.category == 'id' %}🪪
+                    {% elif doc.category == 'academic' %}🎓
+                    {% elif doc.category == 'certificate' %}🏅
+                    {% elif doc.category == 'cv' %}📄
+                    {% elif doc.category == 'reference' %}✉️
+                    {% else %}📁{% endif %}
+                </div>
+                <div>
+                    <h3 class="font-semibold text-white">{{ doc.title }}</h3>
+                    <span class="text-sm text-gray-400">{{ doc.get_category_display }} · Uploaded {{ doc.uploaded_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="{% url 'document_log' doc.id %}" class="text-gray-400 hover:text-white text-sm transition">History</a>
+                <a href="{% url 'create_share_link' doc.id %}" class="text-sm px-4 py-1.5 rounded-full font-medium transition"
+                   style="background: linear-gradient(135deg, rgba(187,0,0,0.2), rgba(0,102,0,0.2)); border: 1px solid rgba(255,255,255,0.1);">
+                    Share
+                </a>
+                <a href="{% url 'delete_document' doc.id %}" class="text-red-400 hover:text-red-300 text-sm transition">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="glass rounded-3xl p-16 text-center">
+        <div class="text-6xl mb-4">📂</div>
+        <p class="text-gray-300 text-lg mb-2">No documents uploaded yet</p>
+        <p class="text-gray-500 mb-6">Start building your digital vault — upload your first document now.</p>
+        <a href="{% url 'upload' %}" class="glow-upload inline-block text-white px-6 py-3 rounded-full font-semibold text-sm">
+            Upload Your First Document
+        </a>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="bg-white p-10 rounded-xl shadow text-center text-gray-500">
-    <p>No documents uploaded yet.</p>
-    <a href="{% url 'upload' %}" class="text-blue-600 hover:underline mt-2 inline-block">Upload your first document</a>
-</div>
-{% endif %}
+
+<script>
+function filterDocs() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const activeCategory = document.querySelector('.category-pill.active').dataset.category;
+    document.querySelectorAll('.doc-item').forEach(item => {
+        const matchesSearch = item.dataset.title.includes(search);
+        const matchesCategory = activeCategory === 'all' || item.dataset.category === activeCategory;
+        item.style.display = (matchesSearch && matchesCategory) ? 'flex' : 'none';
+    });
+}
+
+document.querySelectorAll('.category-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterDocs();
+    });
+});
+</script>
 {% endblock %}
