@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+    <h2 class="text-2xl font-bold mb-2 text-gray-800">Access History</h2>
+    <p class="text-gray-500 mb-6">{{ document.title }}</p>
+
+    {% if logs %}
+    <div class="space-y-3">
+        {% for log in logs %}
+        <div class="flex justify-between items-center border-b border-gray-100 pb-3">
+            <div>
+                <span class="font-medium text-gray-700">{{ log.get_action_display }}</span>
+                {% if log.ip_address %}
+                    <span class="text-sm text-gray-400 block">IP: {{ log.ip_address }}</span>
+                {% endif %}
+            </div>
+            <span class="text-sm text-gray-500">{{ log.timestamp|date:"M d, Y H:i" }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-gray-500">No activity recorded yet.</p>
+    {% endif %}
+
+    <a href="{% url 'dashboard' %}" class="text-blue-600 hover:underline mt-6 inline-block">← Back to Dashboard</a>
+</div>
+{% endblock %}

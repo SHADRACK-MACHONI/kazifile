@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="flex justify-between items-center mb-8">
+    <h2 class="text-3xl font-bold text-gray-800">My Documents</h2>
+    <a href="{% url 'upload' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">
+        + Upload Document
+    </a>
+</div>
+
+{% if documents %}
+<div class="grid gap-4">
+    {% for doc in documents %}
+    <div class="bg-white p-5 rounded-xl shadow flex justify-between items-center">
+        <div>
+            <h3 class="font-semibold text-gray-800">{{ doc.title }}</h3>
+            <span class="text-sm text-gray-500">{{ doc.get_category_display }} · Uploaded {{ doc.uploaded_at|date:"M d, Y" }}</span>
+        </div>
+        <div class="space-x-3">
+            <a href="{% url 'create_share_link' doc.id %}" class="text-blue-600 hover:underline text-sm">Share</a>
+            <a href="{% url 'delete_document' doc.id %}" class="text-red-500 hover:underline text-sm">Delete</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bg-white p-10 rounded-xl shadow text-center text-gray-500">
+    <p>No documents uploaded yet.</p>
+    <a href="{% url 'upload' %}" class="text-blue-600 hover:underline mt-2 inline-block">Upload your first document</a>
+</div>
+{% endif %}
+{% endblock %}
