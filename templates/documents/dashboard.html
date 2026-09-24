@@ -1,5 +1,88 @@
 {% extends 'base.html' %}
 {% block content %}
+{% if show_onboarding %}
+<div id="onboardingOverlay" style="position: fixed; inset: 0; z-index: 200; background: rgba(5,6,8,.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="glass" style="max-width: 460px; width: 100%; padding: 40px 32px; text-align: center; position: relative;">
+
+        <div id="onboardingStep1">
+            <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(59,130,246,.22), rgba(139,92,246,.1)); font-size: 30px;">👋</div>
+            <h2 class="heading-font" style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">Welcome to KaziFile</h2>
+            <p style="color: #9ca3af; font-size: 14px; line-height: 1.7; margin-bottom: 28px;">
+                This is your secure document vault. Let's walk through the basics in three quick steps.
+            </p>
+        </div>
+
+        <div id="onboardingStep2" style="display: none;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(16,185,129,.22), rgba(16,185,129,.1)); font-size: 30px;">🔐</div>
+            <h2 class="heading-font" style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">Upload & encrypt</h2>
+            <p style="color: #9ca3af; font-size: 14px; line-height: 1.7; margin-bottom: 28px;">
+                Upload your ID, certificates, and CV. Every file gets its own unique encryption key the moment it lands.
+            </p>
+        </div>
+
+        <div id="onboardingStep3" style="display: none;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, rgba(187,0,0,.18), rgba(0,102,0,.14)); font-size: 30px;">📱</div>
+            <h2 class="heading-font" style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">Share in seconds</h2>
+            <p style="color: #9ca3af; font-size: 14px; line-height: 1.7; margin-bottom: 28px;">
+                Generate a secure link or QR code for any document — perfect for handing over at an interview.
+            </p>
+        </div>
+
+        <div style="display: flex; justify-content: center; gap: 6px; margin-bottom: 24px;">
+            <span class="onboarding-dot" data-step="1" style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; transition: background .2s;"></span>
+            <span class="onboarding-dot" data-step="2" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.15); transition: background .2s;"></span>
+            <span class="onboarding-dot" data-step="3" style="width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.15); transition: background .2s;"></span>
+        </div>
+
+        <button id="onboardingNextBtn" class="glow-btn" style="width: 100%;">Next</button>
+        <button id="onboardingSkipBtn" class="nav-link" style="width: 100%; justify-content: center; margin-top: 10px; color: #6b7280;">Skip</button>
+
+    </div>
+</div>
+
+<script>
+    (function() {
+        let currentStep = 1;
+        const totalSteps = 3;
+        const nextBtn = document.getElementById('onboardingNextBtn');
+        const skipBtn = document.getElementById('onboardingSkipBtn');
+        const overlay = document.getElementById('onboardingOverlay');
+        const dots = document.querySelectorAll('.onboarding-dot');
+
+        function showStep(step) {
+            for (let i = 1; i <= totalSteps; i++) {
+                document.getElementById('onboardingStep' + i).style.display = (i === step) ? 'block' : 'none';
+            }
+            dots.forEach(dot => {
+                dot.style.background = (parseInt(dot.dataset.step) === step) ? '#3b82f6' : 'rgba(255,255,255,.15)';
+            });
+            nextBtn.textContent = (step === totalSteps) ? 'Get Started' : 'Next';
+        }
+
+        function completeOnboarding() {
+            fetch('{% url "complete_onboarding" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                }
+            }).finally(() => {
+                overlay.remove();
+            });
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            } else {
+                completeOnboarding();
+            }
+        });
+
+        skipBtn.addEventListener('click', completeOnboarding);
+    })();
+</script>
+{% endif %}
 <style>
     body { background: #0a0e1a; }
 

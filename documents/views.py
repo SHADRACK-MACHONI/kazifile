@@ -32,6 +32,9 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
+
+from accounts.models import UserOnboarding
+
 @login_required
 def dashboard_view(request):
     from django.core.paginator import Paginator
@@ -39,8 +42,14 @@ def dashboard_view(request):
     paginator = Paginator(documents_list, 8)
     page_number = request.GET.get('page')
     documents = paginator.get_page(page_number)
-    return render(request, 'documents/dashboard.html', {'documents': documents})
 
+    onboarding, created = UserOnboarding.objects.get_or_create(user=request.user)
+    show_onboarding = not onboarding.has_completed_onboarding
+
+    return render(request, 'documents/dashboard.html', {
+        'documents': documents,
+        'show_onboarding': show_onboarding,
+    })
 
 @login_required
 def upload_view(request):
@@ -145,3 +154,14 @@ def verify_document_view(request):
             }
 
     return render(request, 'documents/verify.html', {'result': result})
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def complete_onboarding_view(request):
+    onboarding, created = UserOnboarding.objects.get_or_create(user=request.user)
+    onboarding.has_completed_onboarding = True
+    onboarding.completed_at = timezone.now()
+    onboarding.save()
+    return JsonResponse({'status': 'ok'})

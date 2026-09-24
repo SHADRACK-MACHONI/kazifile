@@ -9,4 +9,5 @@ urlpatterns = [
     path('shared/<str:token>/', views.view_shared_document, name='view_shared_document'),
     path('logs/<int:doc_id>/', views.document_log_view, name='document_log'),
     path('verify/', views.verify_document_view, name='verify_document'),
+    path('complete-onboarding/', views.complete_onboarding_view, name='complete_onboarding'),
 ]
