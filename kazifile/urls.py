@@ -22,11 +22,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from documents.views import landing_page
+from documents.views import landing_page, privacy_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('documents/', include('documents.urls')),
+    path('privacy/', privacy_page, name='privacy'),
     path('', landing_page, name='landing'),
 ]
 

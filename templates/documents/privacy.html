@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .glass {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .kenya-strip {
+        background: linear-gradient(90deg, #000000 0%, #000000 25%, #BB0000 25%, #BB0000 50%, #ffffff 50%, #ffffff 75%, #006600 75%, #006600 100%);
+        height: 4px;
+        border-radius: 999px;
+    }
+    .policy-section h3 {
+        margin-top: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    .policy-section p, .policy-section li {
+        color: #9ca3af;
+        line-height: 1.8;
+    }
+    .policy-section ul {
+        list-style: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="max-w-3xl mx-auto px-4 py-6 text-white">
+
+    <div class="kenya-strip mb-8 w-24"></div>
+
+    <div class="glass rounded-3xl p-10">
+        <h1 class="text-4xl font-bold mb-2" style="font-family:'Space Grotesk',sans-serif;">Privacy & Data Handling</h1>
+        <p class="text-gray-500 mb-8">Last updated: September 2026</p>
+
+        <div class="policy-section">
+            <p>
+                KaziFile exists to help you store and share sensitive personal documents — including identification,
+                academic records, and certificates. Because of this, we take data protection seriously and want to
+                be transparent about exactly how your information is handled.
+            </p>
+
+            <h3 class="text-xl font-bold text-white">What we collect</h3>
+            <ul>
+                <li>Your username, email address, and password (stored as a secure hash, never in plain text)</li>
+                <li>Documents you choose to upload, encrypted individually before storage</li>
+                <li>Metadata about your documents: title, category, and upload date</li>
+                <li>Access logs: when a document is shared or viewed, including the IP address of the request</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-white">How your documents are protected</h3>
+            <ul>
+                <li>Every document is encrypted with its own unique encryption key before being saved to storage</li>
+                <li>Share links expire automatically after 2 days</li>
+                <li>You can enable two-factor authentication (2FA) for additional login security</li>
+                <li>Failed login attempts are rate-limited to protect against unauthorized access</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-white">How we use your data</h3>
+            <p>
+                Your documents and personal information are used solely to provide the KaziFile service to you —
+                storing your files, generating share links, and maintaining your access history. We do not sell,
+                rent, or share your personal data or documents with third parties for marketing purposes.
+            </p>
+
+            <h3 class="text-xl font-bold text-white">Your rights</h3>
+            <p>
+                You may delete any document from your account at any time, which permanently removes both the file
+                and its encryption key. If you wish to delete your entire account and all associated data, please
+                contact us using the details below.
+            </p>
+
+            <h3 class="text-xl font-bold text-white">Compliance with Kenyan law</h3>
+            <p>
+                KaziFile is built with an awareness of the <strong>Data Protection Act, 2019</strong> of Kenya, which
+                governs the collection, processing, and storage of personal data within the country. As an evolving
+                student project, KaziFile is not yet formally registered with the Office of the Data Protection
+                Commissioner (ODPC), but is designed in line with the Act's core principles — including data
+                minimization, purpose limitation, and security safeguards for personal data.
+            </p>
+
+            <h3 class="text-xl font-bold text-white">Data retention</h3>
+            <p>
+                Documents remain stored until you delete them yourself. Access logs are retained to give you full
+                visibility into your document's history and are not currently subject to automatic deletion.
+            </p>
+
+            <h3 class="text-xl font-bold text-white">Contact</h3>
+            <p>
+                For questions about this policy or your data, or to request account deletion, please reach out
+                through the contact details associated with this project.
+            </p>
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-white/10">
+            <a href="{% url 'landing' %}" class="text-emerald-400 hover:text-emerald-300 hover:underline">← Back to home</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
