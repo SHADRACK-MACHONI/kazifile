@@ -86,3 +86,12 @@ def generate_qr_code_base64(url):
     img.save(buffer, format="PNG")
     img_str = base64.b64encode(buffer.getvalue()).decode()
     return f"data:image/png;base64,{img_str}"
+import hashlib
+
+def compute_file_hash(file_obj):
+    """Computes a SHA-256 hash of a file's raw content, before encryption."""
+    sha256 = hashlib.sha256()
+    for chunk in file_obj.chunks():
+        sha256.update(chunk)
+    file_obj.seek(0)  # reset pointer so the file can still be saved/encrypted afterward
+    return sha256.hexdigest()

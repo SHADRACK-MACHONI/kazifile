@@ -1,3 +1,4 @@
+
 {% extends 'base.html' %}
 
 {% block title %}Share Link Created — KaziFile{% endblock %}
@@ -39,9 +40,22 @@
         </a>
     </div>
 
-    <p style="font-size: 13px; color: #6b7280; margin-bottom: 30px; line-height: 1.7;">
+    <p style="font-size: 13px; color: #6b7280; margin-bottom: 22px; line-height: 1.7;">
         Scan this code on another device to open the document directly — no login required while the link is active.
     </p>
+
+    <div class="glass" style="text-align: left; padding: 18px 20px; border-radius: 16px; margin-bottom: 30px;">
+        <p style="font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px;">
+            Document Fingerprint (SHA-256)
+        </p>
+        <p style="font-size: 12px; color: #34d399; word-break: break-all; font-family: 'Space Grotesk', monospace; margin-bottom: 10px;">
+            {{ document.file_hash }}
+        </p>
+        <p style="font-size: 12px; color: #9ca3af; line-height: 1.6; margin: 0;">
+            Share this fingerprint with the recipient separately (e.g. verbally or via a different channel) so they can confirm the document hasn't been altered, using the
+            <a href="{% url 'verify_document' %}" style="color: #34d399; text-decoration: underline;">Verify Document</a> tool.
+        </p>
+    </div>
 
     <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
         <a href="{% url 'dashboard' %}" class="secondary-btn">← Back to Dashboard</a>

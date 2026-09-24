@@ -1,6 +1,6 @@
+
 import secrets
 from datetime import timedelta
-from django.core.paginator import Paginator
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -9,15 +9,20 @@ from .models import Document, ShareLink, AccessLog
 from .forms import DocumentUploadForm
 from .utils import (
     encrypt_file, decrypt_file, guess_category, generate_qr_code_base64,
-    generate_file_key, encrypt_file_key, decrypt_file_key
+    generate_file_key, encrypt_file_key, decrypt_file_key, compute_file_hash
 )
 import tempfile
+import hashlib
 
 
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return render(request, 'documents/landing.html')
+
+
+def privacy_page(request):
+    return render(request, 'documents/privacy.html')
 
 
 def get_client_ip(request):
@@ -27,17 +32,15 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 
-from django.core.paginator import Paginator
-
 @login_required
 def dashboard_view(request):
+    from django.core.paginator import Paginator
     documents_list = Document.objects.filter(owner=request.user).order_by('-uploaded_at')
-
-    paginator = Paginator(documents_list, 8)  # 8 documents per page
+    paginator = Paginator(documents_list, 8)
     page_number = request.GET.get('page')
     documents = paginator.get_page(page_number)
-
     return render(request, 'documents/dashboard.html', {'documents': documents})
+
 
 @login_required
 def upload_view(request):
@@ -50,6 +53,9 @@ def upload_view(request):
             if not document.category:
                 filename = request.FILES['file'].name
                 document.category = guess_category(filename)
+
+            # Compute the hash of the ORIGINAL file, before encryption
+            document.file_hash = compute_file_hash(request.FILES['file'])
 
             file_key = generate_file_key()
             document.encrypted_file_key = encrypt_file_key(file_key)
@@ -120,5 +126,22 @@ def document_log_view(request, doc_id):
     document = get_object_or_404(Document, id=doc_id, owner=request.user)
     logs = document.access_logs.all()
     return render(request, 'documents/document_log.html', {'document': document, 'logs': logs})
-def privacy_page(request):
-    return render(request, 'documents/privacy.html')
+
+
+def verify_document_view(request):
+    """Lets anyone upload a file and check its hash against a document's stored hash."""
+    result = None
+    if request.method == 'POST':
+        uploaded_file = request.FILES.get('file')
+        claimed_hash = request.POST.get('expected_hash', '').strip().lower()
+
+        if uploaded_file and claimed_hash:
+            computed_hash = compute_file_hash(uploaded_file)
+            matches = computed_hash == claimed_hash
+            result = {
+                'matches': matches,
+                'computed_hash': computed_hash,
+                'claimed_hash': claimed_hash,
+            }
+
+    return render(request, 'documents/verify.html', {'result': result})
