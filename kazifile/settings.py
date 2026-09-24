@@ -160,3 +160,17 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+# Email configuration (Django 6.1+ style)
+MAILERS = {
+    'default': {
+        'BACKEND': config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend'),
+        'HOST': config('EMAIL_HOST', default='smtp.gmail.com'),
+        'PORT': config('EMAIL_PORT', default=587, cast=int),
+        'USE_TLS': config('EMAIL_USE_TLS', default=True, cast=bool),
+        'USERNAME': config('EMAIL_HOST_USER', default=''),
+        'PASSWORD': config('EMAIL_HOST_PASSWORD', default=''),
+    }
+}
+
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='KaziFile <noreply@kazifile.com>')
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour, in seconds
