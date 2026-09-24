@@ -1,18 +1,24 @@
+
+import secrets
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib import messages
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from django_otp import login as otp_login, match_token
 from .forms import SignupForm
+from .models import EmailVerification
 from documents.utils import generate_qr_code_base64
 import qrcode
 import io
 import base64
 
 MAX_LOGIN_ATTEMPTS = 5
-LOCKOUT_DURATION_SECONDS = 300  # 5 minutes
+LOCKOUT_DURATION_SECONDS = 300
 
 
 def get_client_ip(request):
@@ -44,16 +50,47 @@ def clear_attempts(request):
     cache.delete(key)
 
 
+def send_verification_email(request, user, verification):
+    verify_url = request.build_absolute_uri(f'/accounts/verify-email/{verification.token}/')
+    send_mail(
+        subject='Verify your KaziFile account',
+        message=f'Hi {user.username},\n\nPlease verify your email by clicking this link:\n{verify_url}\n\nThis link does not expire, but you won\'t be able to log in until you verify.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
+
+
 def signup_view(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('setup_2fa')
+            user.is_active = True  # user exists, but login is gated by verification, not is_active
+            user.save()
+
+            verification = EmailVerification.objects.create(
+                user=user,
+                token=secrets.token_urlsafe(32)
+            )
+            send_verification_email(request, user, verification)
+
+            return render(request, 'accounts/verify_email_sent.html', {'email': user.email})
     else:
         form = SignupForm()
     return render(request, 'accounts/signup.html', {'form': form})
+
+
+def verify_email_view(request, token):
+    try:
+        verification = EmailVerification.objects.get(token=token)
+    except EmailVerification.DoesNotExist:
+        return render(request, 'accounts/verify_email_invalid.html')
+
+    verification.is_verified = True
+    verification.save()
+
+    return render(request, 'accounts/verify_email_success.html')
 
 
 def login_view(request):
@@ -67,15 +104,20 @@ def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            clear_attempts(request)
             user = form.get_user()
-            device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
-            if device:
-                request.session['pre_2fa_user_id'] = user.id
-                return redirect('verify_2fa')
+
+            verification = EmailVerification.objects.filter(user=user).first()
+            if verification and not verification.is_verified:
+                form.add_error(None, "Please verify your email before logging in. Check your inbox for the verification link.")
             else:
-                login(request, user)
-                return redirect('dashboard')
+                clear_attempts(request)
+                device = TOTPDevice.objects.filter(user=user, confirmed=True).first()
+                if device:
+                    request.session['pre_2fa_user_id'] = user.id
+                    return redirect('verify_2fa')
+                else:
+                    login(request, user)
+                    return redirect('dashboard')
         else:
             record_failed_attempt(request)
             attempts_left = MAX_LOGIN_ATTEMPTS - cache.get(get_lockout_key(request), 0)

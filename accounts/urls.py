@@ -9,8 +9,8 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('setup-2fa/', views.setup_2fa_view, name='setup_2fa'),
     path('verify-2fa/', views.verify_2fa_view, name='verify_2fa'),
+    path('verify-email/<str:token>/', views.verify_email_view, name='verify_email'),
 
-    # Password reset flow
     path('password-reset/',
          auth_views.PasswordResetView.as_view(template_name='accounts/password_reset.html'),
          name='password_reset'),
